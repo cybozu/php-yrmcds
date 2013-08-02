@@ -1,0 +1,11 @@
+# C/C++
+.deps
+*.[oa]
+*.l[oa]
+
+# Editors
+*~
+.*.swp
+
+# binaries
+*.so
