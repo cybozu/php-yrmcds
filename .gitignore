@@ -7,5 +7,27 @@
 *~
 .*.swp
 
+# Directories
+.libs
+output
+html
+
 # binaries
 *.so
+
+# phpize generated files
+Makefile.global
+acinclude.m4
+aclocal.m4
+autom4te.cache
+build
+config.guess
+config.h.in
+config.sub
+configure
+configure.in
+install-sh
+ltmain.sh
+missing
+mkinstalldirs
+run-tests.php

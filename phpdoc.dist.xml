@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpdoc>
+    <title>yrmcds for PHP5</title>
+    <parser>
+        <default-package-name>yrmcds</default-package-name>
+        <target>output</target>
+    </parser>
+    <transformer>
+        <target>html</target>
+    </transformer>
+    <logging>
+        <level>warn</level>
+        <paths>
+            <default>output/{DATE}.log</default>
+            <errors>output/{DATE}.errors.log</errors>
+        </paths>
+    </logging>
+    <transformations>
+        <template name="responsive-twig" />
+    </transformations>
+    <files>
+        <file>yrmcds-api.php</file>
+        <file>yrmcds_session.php</file>
+    </files>
+</phpdoc>

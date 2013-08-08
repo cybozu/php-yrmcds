@@ -1,0 +1,28 @@
+# Makefile for phpDocumentor2
+
+BINDIR = /usr/local/php/bin
+PHP = $(BINDIR)/php
+PEAR = $(BINDIR)/pear
+PHPDOC = $(BINDIR)/phpdoc
+
+html:
+	rm -rf html
+	$(PHPDOC)
+
+setup:
+	sudo apt-get install libxslt1-dev libicu-dev graphviz
+	@echo 'Install PHP with the following configurations:'
+	@echo ./configure --enable-intl --enable-libxml --with-zlib --with-xsl --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc
+
+phpdoc:
+	$(PEAR) channel-discover pear.phpdoc.org
+	$(PEAR) install phpdoc/phpDocumentor
+        echo 'date.timezone = UTC' > /usr/local/php/etc/php.ini
+
+serve: html
+	(cd html; python -m SimpleHTTPServer 8888)
+
+clean:
+	rm -rf output html *.o *.lo *.la */*.o */*.lo .libs
+
+.PHONY: setup phpdoc html
