@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
+    <meta charset="utf-8"/>
+    <title>    yrmcds for PHP5 &raquo; \yrmcds\Client
+</title>
+    <meta name="author" content=""/>
+    <meta name="description" content=""/>
+
+            <link href="../css/template.css" rel="stylesheet" media="all"/>
+    
+            <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script>
+        <![endif]-->
+        <script src="../js/jquery-1.7.1.min.js" type="text/javascript"></script>
+        <script src="../js/jquery-ui-1.8.2.custom.min.js" type="text/javascript"></script>
+        <script src="../js/jquery.mousewheel.min.js" type="text/javascript"></script>
+        <script src="../js/bootstrap.js" type="text/javascript"></script>
+        <script src="../js/template.js" type="text/javascript"></script>
+        <script src="../js/prettify/prettify.min.js" type="text/javascript"></script>
+    
+            <link rel="shortcut icon" href="../img/favicon.ico"/>
+        <link rel="apple-touch-icon" href="../img/apple-touch-icon.png"/>
+        <link rel="apple-touch-icon" sizes="72x72" href="../img/apple-touch-icon-72x72.png"/>
+        <link rel="apple-touch-icon" sizes="114x114" href="../img/apple-touch-icon-114x114.png"/>
+    </head>
+<body>
+
+        <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container">
+                <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                    <span class="icon-bar"></span> <span class="icon-bar"></span>
+                    <span class="icon-bar"></span> </a>
+                <a class="brand" href="../index.html">yrmcds for PHP5</a>
+
+                <div class="nav-collapse">
+                    <ul class="nav">
+                        <li class="dropdown">
+                            <a href="#api" class="dropdown-toggle" data-toggle="dropdown">
+                                API Documentation <b class="caret"></b>
+                            </a>
+                            <ul class="dropdown-menu">
+                                                                    <li><a>Namespaces</a></li>
+                                                                        <li><a href="../namespaces/yrmcds.html">yrmcds</a></li>
+                                                                                                                                </ul>
+                        </li>
+                        <li class="dropdown" id="charts-menu">
+                            <a href="#charts" class="dropdown-toggle" data-toggle="dropdown">
+                                Charts <b class="caret"></b>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a href="../graph_class.html">
+                                        <i class="icon-list-alt"></i>&#160;Class hierarchy diagram
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="dropdown" id="reports-menu">
+                            <a href="#reports" class="dropdown-toggle" data-toggle="dropdown">
+                                Reports <b class="caret"></b>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a href="../errors.html">
+                                        <i class="icon-list-alt"></i>&#160;Errors
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="../markers.html">
+                                        <i class="icon-list-alt"></i>&#160;Markers
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="../deprecated.html">
+                                        <i class="icon-list-alt"></i>&#160;Deprecated
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="go_to_top">
+            <a href="#___" style="color: inherit">Back to top&#160;&#160;<i class="icon-upload icon-white"></i></a>
+        </div>
+    </div>
+    
+    <div id="___" class="container">
+        <noscript>
+            <div class="alert alert-warning">
+                Javascript is disabled; several features are only available if Javascript is enabled.
+            </div>
+        </noscript>
+
+        
+            <style>
+        .deprecated h2 {
+            text-decoration: line-through;
+        }
+    </style>
+    <div class="row">
+        <div class="span4">
+                    <div class="btn-group view pull-right" data-toggle="buttons-radio">
+        <button class="btn details" title="Show descriptions and method names"><i class="icon-list"></i></button>
+        <button class="btn simple" title="Show only method names"><i class="icon-align-justify"></i></button>
+    </div>
+    <div class="btn-group visibility" data-toggle="buttons-checkbox">
+        <button class="btn public active" title="Show public elements">Public</button>
+        <button class="btn protected" title="Show protected elements">Protected</button>
+        <button class="btn private" title="Show private elements">Private</button>
+        <button class="btn inherited active" title="Show inherited elements">Inherited</button>
+    </div>
+
+        <ul class="side-nav nav nav-list">
+        <li class="nav-header">
+            <i class="icon-custom icon-method"></i> Methods
+            <ul>
+                                                                                                    <li class="method public">
+        <a href="#method___construct" title="__construct :: Constructor.">
+            <span class="description">Constructor.</span><pre>__construct</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_setTimeout" title="setTimeout :: Set socket timeouts.">
+            <span class="description">Set socket timeouts.</span><pre>setTimeout</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_recv" title="recv :: Receive a command response.">
+            <span class="description">Receive a command response.</span><pre>recv</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_noop" title="noop :: Send `Noop` command.">
+            <span class="description">Send `Noop` command.</span><pre>noop</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_get" title="get :: Send `Get` or `GetQ` command to retrieve an object.">
+            <span class="description">Send `Get` or `GetQ` command to retrieve an object.</span><pre>get</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_getk" title="getk :: Send `GetK` or `GetKQ` command to retrieve an object.">
+            <span class="description">Send `GetK` or `GetKQ` command to retrieve an object.</span><pre>getk</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_getTouch" title="getTouch :: Send `GaT` or `GaTQ` command to retrieve and touch an object.">
+            <span class="description">Send `GaT` or `GaTQ` command to retrieve and touch an object.</span><pre>getTouch</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_getkTouch" title="getkTouch :: Send `GaTK` or `GaTKQ` command to retrieve and touch an object.">
+            <span class="description">Send `GaTK` or `GaTKQ` command to retrieve and touch an object.</span><pre>getkTouch</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_lockGet" title="lockGet :: Send `LaG` or `LaGQ` command to lock and retrieve an object.">
+            <span class="description">Send `LaG` or `LaGQ` command to lock and retrieve an object.</span><pre>lockGet</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_lockGetk" title="lockGetk :: Send `LaGK` or `LaGKQ` command to lock and retrieve an object.">
+            <span class="description">Send `LaGK` or `LaGKQ` command to lock and retrieve an object.</span><pre>lockGetk</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_touch" title="touch :: Send `Touch` command to retrieve and touch an object.">
+            <span class="description">Send `Touch` command to retrieve and touch an object.</span><pre>touch</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_set" title="set :: Send `Set` or `SetQ` command to store an object.">
+            <span class="description">Send `Set` or `SetQ` command to store an object.</span><pre>set</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_replace" title="replace :: Send `Replace` or `ReplaceQ` command to replace an existing object.">
+            <span class="description">Send `Replace` or `ReplaceQ` command to replace an existing object.</span><pre>replace</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_add" title="add :: Send `Add` or `AddQ` command to replace an existing object.">
+            <span class="description">Send `Add` or `AddQ` command to replace an existing object.</span><pre>add</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_replaceUnlock" title="replaceUnlock :: Send `RaU` or `RaUQ` command to replace and unlock an existing object.">
+            <span class="description">Send `RaU` or `RaUQ` command to replace and unlock an existing object.</span><pre>replaceUnlock</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_incr" title="incr :: Send `Increment` or `IncrementQ` command to increment an object&#039;s value.">
+            <span class="description">Send `Increment` or `IncrementQ` command to increment an object&#039;s value.</span><pre>incr</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_incr2" title="incr2 :: Send `Increment` or `IncrementQ` command to increment an object&#039;s value.">
+            <span class="description">Send `Increment` or `IncrementQ` command to increment an object&#039;s value.</span><pre>incr2</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_decr" title="decr :: Send `Decrement` or `DecrementQ` command to decrement an object&#039;s value.">
+            <span class="description">Send `Decrement` or `DecrementQ` command to decrement an object&#039;s value.</span><pre>decr</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_decr2" title="decr2 :: Send `Decrement` or `DecrementQ` command to decrement an object&#039;s value.">
+            <span class="description">Send `Decrement` or `DecrementQ` command to decrement an object&#039;s value.</span><pre>decr2</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_append" title="append :: Send `Append` or `AppendQ` command to append data.">
+            <span class="description">Send `Append` or `AppendQ` command to append data.</span><pre>append</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_prepend" title="prepend :: Send `Prepend` or `PrependQ` command to append data.">
+            <span class="description">Send `Prepend` or `PrependQ` command to append data.</span><pre>prepend</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_delete" title="delete :: Send `Delete` or `DeleteQ` command to delete an object.">
+            <span class="description">Send `Delete` or `DeleteQ` command to delete an object.</span><pre>delete</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_lock" title="lock :: Send `Lock` or `LockQ` command to lock an object.">
+            <span class="description">Send `Lock` or `LockQ` command to lock an object.</span><pre>lock</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_unlock" title="unlock :: Send `Unlock` or `UnlockQ` command to unlock an object.">
+            <span class="description">Send `Unlock` or `UnlockQ` command to unlock an object.</span><pre>unlock</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_unlockAll" title="unlockAll :: Send `UnlockAll` or `UnlockAllQ` command to unlock all locks.">
+            <span class="description">Send `UnlockAll` or `UnlockAllQ` command to unlock all locks.</span><pre>unlockAll</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_flush" title="flush :: Send `Flush` or `FlushQ` command to flush all objects.">
+            <span class="description">Send `Flush` or `FlushQ` command to flush all objects.</span><pre>flush</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_statGeneral" title="statGeneral :: Send `Stat` to retrieve general statictics of the server.">
+            <span class="description">Send `Stat` to retrieve general statictics of the server.</span><pre>statGeneral</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_statSettings" title="statSettings :: Send `Stat` to retrieve settings of the server.">
+            <span class="description">Send `Stat` to retrieve settings of the server.</span><pre>statSettings</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_statItems" title="statItems :: Send `Stat` to retrieve item statistics of the server.">
+            <span class="description">Send `Stat` to retrieve item statistics of the server.</span><pre>statItems</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_statSizes" title="statSizes :: Send `Stat` to retrieve size statistics of the server.">
+            <span class="description">Send `Stat` to retrieve size statistics of the server.</span><pre>statSizes</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_version" title="version :: Send `Version` to retrieve the server version.">
+            <span class="description">Send `Version` to retrieve the server version.</span><pre>version</pre>
+        </a>
+    </li>
+
+                                                                                                        <li class="method public">
+        <a href="#method_quit" title="quit :: Send `Quit` or `QuitQ` to ask the server closes the connection.">
+            <span class="description">Send `Quit` or `QuitQ` to ask the server closes the connection.</span><pre>quit</pre>
+        </a>
+    </li>
+
+                                                </ul>
+        </li>
+        <li class="nav-header protected">» Protected
+            <ul>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </ul>
+        </li>
+        <li class="nav-header private">» Private
+            <ul>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </ul>
+        </li>
+        <li class="nav-header">
+            <i class="icon-custom icon-constant"></i> Constants
+            <ul>
+                            </ul>
+        </li>
+    </ul>
+
+
+        </div>
+
+        <div class="span8">
+            <div class="element class">
+                <h1>Client</h1>
+                <small style="display: block; text-align: right">
+                                                        </small>
+                <p class="short_description">Memcached client class.</p>
+                <div class="details">
+                    <div class="long_description">
+                        <p>Instances of this class represents a connection to a memcached/yrmcds
+server.  Most methods may throw \yrmcds\Error when a
+non-recoverable error happens.</p>
+
+                    </div>
+                    <table class="table table-bordered">
+                                                                                                                                                                                                        </table>
+
+                    <h3><i class="icon-custom icon-method"></i> Methods</h3>
+                                                                <a id="method___construct"></a>
+                        <div class="element clickable method public  method___construct" data-toggle="collapse" data-target=".method___construct .collapse">
+                            <h2>Constructor.</h2>
+                            <pre>__construct(string $node, int $port = 11211, string $persist_id = NULL, string $prefix = NULL) </pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>If $persist_id is NULL, a new connection is established.
+Otherwise, a persistent connection may be reused.</p>
+
+<p>If $prefix is not NULL, keys will automatically be prefixed
+with the specified prefix string.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$node</h4>
+                                                <code>string</code><p><p>The hostname or IP address of the server.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$port</h4>
+                                                <code>int</code><p><p>The port number.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$persist_id</h4>
+                                                <code>string</code><p><p>Persistent connection ID.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$prefix</h4>
+                                                <code>string</code><p><p>Auto-prefix for keys.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_setTimeout"></a>
+                        <div class="element clickable method public  method_setTimeout" data-toggle="collapse" data-target=".method_setTimeout .collapse">
+                            <h2>Set socket timeouts.</h2>
+                            <pre>setTimeout(int $timeout) : void</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>Normally, socket operations may time out as specified in
+<code>yrmcds.default_timeout</code> ini parameter.  This method can change
+timeout temporarily during a request.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$timeout</h4>
+                                                <code>int</code><p><p>The timeout seconds.  0 disables timeout.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_recv"></a>
+                        <div class="element clickable method public  method_recv" data-toggle="collapse" data-target=".method_recv .collapse">
+                            <h2>Receive a command response.</h2>
+                            <pre>recv() : \yrmcds\Response</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>This method receives a command response.  Be warned that commands
+issued quietly may return a response to tell errors.  Also note
+that statistics commands such as <code>statGeneral()</code> returns a series
+of response packets.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                    
+                                                                            <h3>Response</h3>
+                                        <code><a href="../classes/yrmcds.Response.html">\yrmcds\Response</a></code><p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_noop"></a>
+                        <div class="element clickable method public  method_noop" data-toggle="collapse" data-target=".method_noop .collapse">
+                            <h2>Send `Noop` command.</h2>
+                            <pre>noop() : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>This command can finalize a series of get request issued quietly
+(i.e. $quiet = TRUE) because the server must send a response for
+this.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                    
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_get"></a>
+                        <div class="element clickable method public  method_get" data-toggle="collapse" data-target=".method_get .collapse">
+                            <h2>Send `Get` or `GetQ` command to retrieve an object.</h2>
+                            <pre>get(string $key, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>This command sends a request to retrieve the object data associated
+with <code>key</code>.  If $quiet is TRUE, the server will <em>not</em> return a
+response if the object is not found.</p>
+
+<p>The successful response will not contain the key.  To include the
+requested key in the response, use <code>getk()</code>.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_getk"></a>
+                        <div class="element clickable method public  method_getk" data-toggle="collapse" data-target=".method_getk .collapse">
+                            <h2>Send `GetK` or `GetKQ` command to retrieve an object.</h2>
+                            <pre>getk(string $key, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>Like <code>get()</code>, but the successful response contains the requested
+key.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_getTouch"></a>
+                        <div class="element clickable method public  method_getTouch" data-toggle="collapse" data-target=".method_getTouch .collapse">
+                            <h2>Send `GaT` or `GaTQ` command to retrieve and touch an object.</h2>
+                            <pre>getTouch(string $key, int $expire, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>Like <code>get()</code>, but this command resets the object's expiration time.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$expire</h4>
+                                                <code>int</code><p><p>Expiration time in seconds.  0 disables expiration.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_getkTouch"></a>
+                        <div class="element clickable method public  method_getkTouch" data-toggle="collapse" data-target=".method_getkTouch .collapse">
+                            <h2>Send `GaTK` or `GaTKQ` command to retrieve and touch an object.</h2>
+                            <pre>getkTouch(string $key, int $expire, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>Like <code>getTouch()</code>, but the successful response contains the requested
+key.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$expire</h4>
+                                                <code>int</code><p><p>Expiration time in seconds.  0 disables expiration.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_lockGet"></a>
+                        <div class="element clickable method public  method_lockGet" data-toggle="collapse" data-target=".method_lockGet .collapse">
+                            <h2>Send `LaG` or `LaGQ` command to lock and retrieve an object.</h2>
+                            <pre>lockGet(string $key, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>Like <code>get()</code>, but this command first locks the object.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_lockGetk"></a>
+                        <div class="element clickable method public  method_lockGetk" data-toggle="collapse" data-target=".method_lockGetk .collapse">
+                            <h2>Send `LaGK` or `LaGKQ` command to lock and retrieve an object.</h2>
+                            <pre>lockGetk(string $key, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>Like <code>lockGet()</code>, but the successful response contains the requested
+key.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_touch"></a>
+                        <div class="element clickable method public  method_touch" data-toggle="collapse" data-target=".method_touch .collapse">
+                            <h2>Send `Touch` command to retrieve and touch an object.</h2>
+                            <pre>touch(string $key, int $expire, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>This command resets the object's expiration time.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$expire</h4>
+                                                <code>int</code><p><p>Expiration time in seconds.  0 disables expiration.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>Ignored (reserved).</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_set"></a>
+                        <div class="element clickable method public  method_set" data-toggle="collapse" data-target=".method_set .collapse">
+                            <h2>Send `Set` or `SetQ` command to store an object.</h2>
+                            <pre>set(string $key, int|string $data, int $flags, int $expire, int $cas, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>This command adds or replaces an object.</p>
+
+<p>$key and $data must not be an empty string.</p>
+
+<p>Lower 30 bits of $flags can be used freely.
+Other bits are reserved for the underlying library routines.</p>
+
+<p>If $cas is not 0, the operation will succeed only when the CAS
+value of the object is the same as $cas.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$data</h4>
+                                                <code>int|string</code><p><p>Data to be stored.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$flags</h4>
+                                                <code>int</code><p><p>Flags stored along with the data.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$expire</h4>
+                                                <code>int</code><p><p>Expiration time in seconds.  0 disables expiration.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$cas</h4>
+                                                <code>int</code><p><p>Non-zero enables compare-and-swap.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_replace"></a>
+                        <div class="element clickable method public  method_replace" data-toggle="collapse" data-target=".method_replace .collapse">
+                            <h2>Send `Replace` or `ReplaceQ` command to replace an existing object.</h2>
+                            <pre>replace(string $key, int|string $data, int $flags, int $expire, int $cas, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>Like <code>set()</code>, but this method only replaces an existing object.
+If there is not an object for $key, an error response will be returned.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$data</h4>
+                                                <code>int|string</code><p><p>Data to be stored.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$flags</h4>
+                                                <code>int</code><p><p>Flags stored along with the data.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$expire</h4>
+                                                <code>int</code><p><p>Expiration time in seconds.  0 disables expiration.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$cas</h4>
+                                                <code>int</code><p><p>Non-zero enables compare-and-swap.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_add"></a>
+                        <div class="element clickable method public  method_add" data-toggle="collapse" data-target=".method_add .collapse">
+                            <h2>Send `Add` or `AddQ` command to replace an existing object.</h2>
+                            <pre>add(string $key, int|string $data, int $flags, int $expire, int $cas, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>Like <code>set()</code>, but this method only stores a new object.
+If there is already an object for $key, an error response will
+be returned.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$data</h4>
+                                                <code>int|string</code><p><p>Data to be stored.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$flags</h4>
+                                                <code>int</code><p><p>Flags stored along with the data.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$expire</h4>
+                                                <code>int</code><p><p>Expiration time in seconds.  0 disables expiration.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$cas</h4>
+                                                <code>int</code><p><p>Non-zero enables compare-and-swap.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_replaceUnlock"></a>
+                        <div class="element clickable method public  method_replaceUnlock" data-toggle="collapse" data-target=".method_replaceUnlock .collapse">
+                            <h2>Send `RaU` or `RaUQ` command to replace and unlock an existing object.</h2>
+                            <pre>replaceUnlock(string $key, int|string $data, int $flags, int $expire, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>This command will fail unless the object has been locked by this client.</p>
+
+<p>Locked object will neither be expired nor evicted, ensuring this command
+will succeed.  After replacing the data, the object will be unlocked.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$data</h4>
+                                                <code>int|string</code><p><p>Data to be stored.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$flags</h4>
+                                                <code>int</code><p><p>Flags stored along with the data.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$expire</h4>
+                                                <code>int</code><p><p>Expiration time in seconds.  0 disables expiration.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_incr"></a>
+                        <div class="element clickable method public  method_incr" data-toggle="collapse" data-target=".method_incr .collapse">
+                            <h2>Send `Increment` or `IncrementQ` command to increment an object&#039;s value.</h2>
+                            <pre>incr(string $key, int $value, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>Increments an object's value.  If the object data is not numeric,
+this command will fail.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$value</h4>
+                                                <code>int</code><p><p>Amount to increment.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_incr2"></a>
+                        <div class="element clickable method public  method_incr2" data-toggle="collapse" data-target=".method_incr2 .collapse">
+                            <h2>Send `Increment` or `IncrementQ` command to increment an object&#039;s value.</h2>
+                            <pre>incr2(string $key, int $value, int $initial, int $expire, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>Like <code>incr()</code>, but this can create an object if no object for $key
+exists.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$value</h4>
+                                                <code>int</code><p><p>Amount to increment.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$initial</h4>
+                                                <code>int</code><p><p>The initial object value for creation.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$expire</h4>
+                                                <code>int</code><p><p>Expiration time for creation.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_decr"></a>
+                        <div class="element clickable method public  method_decr" data-toggle="collapse" data-target=".method_decr .collapse">
+                            <h2>Send `Decrement` or `DecrementQ` command to decrement an object&#039;s value.</h2>
+                            <pre>decr(string $key, int $value, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>Decrements an object's value.  If the object data is not numeric,
+this command will fail.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$value</h4>
+                                                <code>int</code><p><p>Amount to decrement.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_decr2"></a>
+                        <div class="element clickable method public  method_decr2" data-toggle="collapse" data-target=".method_decr2 .collapse">
+                            <h2>Send `Decrement` or `DecrementQ` command to decrement an object&#039;s value.</h2>
+                            <pre>decr2(string $key, int $value, int $initial, int $expire, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>Like <code>decr()</code>, but this can create an object if no object for $key
+exists.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$value</h4>
+                                                <code>int</code><p><p>Amount to decrement.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$initial</h4>
+                                                <code>int</code><p><p>The initial object value for creation.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$expire</h4>
+                                                <code>int</code><p><p>Expiration time for creation.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_append"></a>
+                        <div class="element clickable method public  method_append" data-toggle="collapse" data-target=".method_append .collapse">
+                            <h2>Send `Append` or `AppendQ` command to append data.</h2>
+                            <pre>append(string $key, int|string $data, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description">
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$data</h4>
+                                                <code>int|string</code><p><p>Data to be appended.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_prepend"></a>
+                        <div class="element clickable method public  method_prepend" data-toggle="collapse" data-target=".method_prepend .collapse">
+                            <h2>Send `Prepend` or `PrependQ` command to append data.</h2>
+                            <pre>prepend(string $key, int|string $data, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description">
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$data</h4>
+                                                <code>int|string</code><p><p>Data to be prepended.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_delete"></a>
+                        <div class="element clickable method public  method_delete" data-toggle="collapse" data-target=".method_delete .collapse">
+                            <h2>Send `Delete` or `DeleteQ` command to delete an object.</h2>
+                            <pre>delete(string $key, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description">
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_lock"></a>
+                        <div class="element clickable method public  method_lock" data-toggle="collapse" data-target=".method_lock .collapse">
+                            <h2>Send `Lock` or `LockQ` command to lock an object.</h2>
+                            <pre>lock(string $key, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>This command tries to acquire lock for the object.
+If another client has already locked the object, this command
+will immediately fail and send an error response back.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_unlock"></a>
+                        <div class="element clickable method public  method_unlock" data-toggle="collapse" data-target=".method_unlock .collapse">
+                            <h2>Send `Unlock` or `UnlockQ` command to unlock an object.</h2>
+                            <pre>unlock(string $key, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description">
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$key</h4>
+                                                <code>string</code><p><p>The key string.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_unlockAll"></a>
+                        <div class="element clickable method public  method_unlockAll" data-toggle="collapse" data-target=".method_unlockAll .collapse">
+                            <h2>Send `UnlockAll` or `UnlockAllQ` command to unlock all locks.</h2>
+                            <pre>unlockAll(bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description">
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_flush"></a>
+                        <div class="element clickable method public  method_flush" data-toggle="collapse" data-target=".method_flush .collapse">
+                            <h2>Send `Flush` or `FlushQ` command to flush all objects.</h2>
+                            <pre>flush(int $delay, bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>If non-zero $delay is specified, flush will delay for that seconds.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$delay</h4>
+                                                <code>int</code><p><p>Delay in seconds.</p>
+</p>
+                                            </div>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_statGeneral"></a>
+                        <div class="element clickable method public  method_statGeneral" data-toggle="collapse" data-target=".method_statGeneral .collapse">
+                            <h2>Send `Stat` to retrieve general statictics of the server.</h2>
+                            <pre>statGeneral() : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>The server will return a series of response packets.
+The series ends with a response data without <code>key</code> property.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                    
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_statSettings"></a>
+                        <div class="element clickable method public  method_statSettings" data-toggle="collapse" data-target=".method_statSettings .collapse">
+                            <h2>Send `Stat` to retrieve settings of the server.</h2>
+                            <pre>statSettings() : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>The server will return a series of response packets.
+The series ends with a response data without <code>key</code> property.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                    
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_statItems"></a>
+                        <div class="element clickable method public  method_statItems" data-toggle="collapse" data-target=".method_statItems .collapse">
+                            <h2>Send `Stat` to retrieve item statistics of the server.</h2>
+                            <pre>statItems() : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>The server will return a series of response packets.
+The series ends with a response data without <code>key</code> property.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                    
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_statSizes"></a>
+                        <div class="element clickable method public  method_statSizes" data-toggle="collapse" data-target=".method_statSizes .collapse">
+                            <h2>Send `Stat` to retrieve size statistics of the server.</h2>
+                            <pre>statSizes() : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>The server will return a series of response packets.
+The series ends with a response data without <code>key</code> property.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                    
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_version"></a>
+                        <div class="element clickable method public  method_version" data-toggle="collapse" data-target=".method_version .collapse">
+                            <h2>Send `Version` to retrieve the server version.</h2>
+                            <pre>version() : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description">
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                    
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                                            <a id="method_quit"></a>
+                        <div class="element clickable method public  method_quit" data-toggle="collapse" data-target=".method_quit .collapse">
+                            <h2>Send `Quit` or `QuitQ` to ask the server closes the connection.</h2>
+                            <pre>quit(bool $quiet = FALSE) : int</pre>
+                            <div class="labels">
+                                                                                                                                                                                            </div>
+                            <div class="row collapse">
+                                <div class="detail-description">
+                                    <div class="long_description"><p>This command effectively invalidates the connection even though
+it is persistent.</p>
+</div>
+
+                                    <table class="table">
+                                                                            </table>
+
+                                                                            <h3>Arguments</h3>
+                                                                                    <div class="subelement argument">
+                                                <h4>$quiet</h4>
+                                                <code>bool</code><p><p>TRUE to suppress a successful response.</p>
+</p>
+                                            </div>
+                                                                            
+                                                                            <h3>Response</h3>
+                                        <code>int</code><p><p>The serial number of the request.</p>
+</p>
+                                                                    </div>
+                            </div>
+                        </div>
+                    
+                    
+                                                        </div>
+            </div>
+            <a id="\yrmcds\Client"></a>
+            <ul class="breadcrumb">
+                <li><a href="../index.html"><i class="icon-custom icon-class"></i></a></li>
+                    
+    
+    <li><span class="divider">\</span><a href="../namespaces/yrmcds.html">yrmcds</a></li>
+
+                <li class="active"><span class="divider">\</span><a href="../classes/yrmcds.Client.html">Client</a></li>
+            </ul>
+        </div>
+    </div>
+
+    </div>
+
+        <footer class="span12">
+            Template is built using <a href="http://twitter.github.com/bootstrap/">Twitter Bootstrap 2</a> and icons provided by
+            <a href="http://glyphicons.com/">Glyphicons</a>.<br/>
+            Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor </a> and<br/>
+            generated on Thu, 08 Aug 2013 17:57:18 +0000.<br/>
+    </footer>
+    </body>
+</html>

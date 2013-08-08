@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
+    <meta charset="utf-8"/>
+    <title>     &raquo; 
+</title>
+    <meta name="author" content=""/>
+    <meta name="description" content=""/>
+
+            <link href="../css/template.css" rel="stylesheet" media="all"/>
+    
+            <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js" type="text/javascript"></script>
+        <![endif]-->
+        <script src="../js/jquery-1.7.1.min.js" type="text/javascript"></script>
+        <script src="../js/jquery-ui-1.8.2.custom.min.js" type="text/javascript"></script>
+        <script src="../js/jquery.mousewheel.min.js" type="text/javascript"></script>
+        <script src="../js/bootstrap.js" type="text/javascript"></script>
+        <script src="../js/template.js" type="text/javascript"></script>
+        <script src="../js/prettify/prettify.min.js" type="text/javascript"></script>
+    
+            <link rel="shortcut icon" href="../img/favicon.ico"/>
+        <link rel="apple-touch-icon" href="../img/apple-touch-icon.png"/>
+        <link rel="apple-touch-icon" sizes="72x72" href="../img/apple-touch-icon-72x72.png"/>
+        <link rel="apple-touch-icon" sizes="114x114" href="../img/apple-touch-icon-114x114.png"/>
+    </head>
+<body>
+
+        <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container">
+                <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                    <span class="icon-bar"></span> <span class="icon-bar"></span>
+                    <span class="icon-bar"></span> </a>
+                <a class="brand" href="../index.html">yrmcds for PHP5</a>
+
+                <div class="nav-collapse">
+                    <ul class="nav">
+                        <li class="dropdown">
+                            <a href="#api" class="dropdown-toggle" data-toggle="dropdown">
+                                API Documentation <b class="caret"></b>
+                            </a>
+                            <ul class="dropdown-menu">
+                                                                    <li><a>Namespaces</a></li>
+                                                                        <li><a href="../namespaces/yrmcds.html">yrmcds</a></li>
+                                                                                                                                </ul>
+                        </li>
+                        <li class="dropdown" id="charts-menu">
+                            <a href="#charts" class="dropdown-toggle" data-toggle="dropdown">
+                                Charts <b class="caret"></b>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a href="../graph_class.html">
+                                        <i class="icon-list-alt"></i>&#160;Class hierarchy diagram
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="dropdown" id="reports-menu">
+                            <a href="#reports" class="dropdown-toggle" data-toggle="dropdown">
+                                Reports <b class="caret"></b>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a href="../errors.html">
+                                        <i class="icon-list-alt"></i>&#160;Errors
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="../markers.html">
+                                        <i class="icon-list-alt"></i>&#160;Markers
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="../deprecated.html">
+                                        <i class="icon-list-alt"></i>&#160;Deprecated
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="go_to_top">
+            <a href="#___" style="color: inherit">Back to top&#160;&#160;<i class="icon-upload icon-white"></i></a>
+        </div>
+    </div>
+    
+    <div id="___" class="container">
+        <noscript>
+            <div class="alert alert-warning">
+                Javascript is disabled; several features are only available if Javascript is enabled.
+            </div>
+        </noscript>
+
+        
+            
+    <div class="row">
+
+        <div class="span4">
+            <div class="btn-group view pull-right" data-toggle="buttons-radio">
+                <button class="btn details" title="Show descriptions and method names">
+                    <i class="icon-list"></i></button><button class="btn simple" title="Show only method names">
+                    <i class="icon-align-justify"></i>
+                </button>
+            </div>
+            <ul class="side-nav nav nav-list">
+                <li class="nav-header">
+                    <i class="icon-map-marker"></i> Packages
+                </li>
+                    
+        <li>
+        <a href="../packages/extension.html" title="extension">
+            <i class="icon-th"></i> extension
+        </a>
+        <ul class="nav nav-list nav-packages">
+                
+    
+        </ul>
+    </li>
+        <li>
+        <a href="../packages/session.html" title="session">
+            <i class="icon-th"></i> session
+        </a>
+        <ul class="nav nav-list nav-packages">
+                
+    
+        </ul>
+    </li>
+    
+            </ul>
+        </div>
+
+        <div class="span8 package-contents">
+                
+    
+                
+    
+        <ul class="breadcrumb">
+            <li><a href="../index.html"><i class="icon-th"></i></a></li>
+                
+                
+    
+    <li>
+        <span class="divider">\</span><a href="../packages/default.html"></a>
+    </li>
+
+    
+    <li>
+        <span class="divider">\</span><a href="../packages/extension.html">extension</a>
+    </li>
+
+        </ul>
+
+        
+                    <div class="package-indent">
+                <h3><i class="icon-custom icon-constant"></i> Constants</h3>
+                                        <div id="STATUS_OK" class="element ajax clickable constant">
+        <h1>STATUS_OK<a href="../namespaces/yrmcds.html#constant_STATUS_OK">¶</a></h1>
+        <p class="short_description">Server response status indicating the command was successfully executed.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_STATUS_OK" class="more">« More »</a>
+    </div>
+
+                                        <div id="STATUS_NOTFOUND" class="element ajax clickable constant">
+        <h1>STATUS_NOTFOUND<a href="../namespaces/yrmcds.html#constant_STATUS_NOTFOUND">¶</a></h1>
+        <p class="short_description">Server response status indicating the object is not found.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_STATUS_NOTFOUND" class="more">« More »</a>
+    </div>
+
+                                        <div id="STATUS_EXISTS" class="element ajax clickable constant">
+        <h1>STATUS_EXISTS<a href="../namespaces/yrmcds.html#constant_STATUS_EXISTS">¶</a></h1>
+        <p class="short_description">Server response status indicating compare-and-swap failure.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_STATUS_EXISTS" class="more">« More »</a>
+    </div>
+
+                                        <div id="STATUS_TOOLARGEVALUE" class="element ajax clickable constant">
+        <h1>STATUS_TOOLARGEVALUE<a href="../namespaces/yrmcds.html#constant_STATUS_TOOLARGEVALUE">¶</a></h1>
+        <p class="short_description">Server response status indicating too large values.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_STATUS_TOOLARGEVALUE" class="more">« More »</a>
+    </div>
+
+                                        <div id="STATUS_INVALID" class="element ajax clickable constant">
+        <h1>STATUS_INVALID<a href="../namespaces/yrmcds.html#constant_STATUS_INVALID">¶</a></h1>
+        <p class="short_description">Server response status indicating the request was invalid.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_STATUS_INVALID" class="more">« More »</a>
+    </div>
+
+                                        <div id="STATUS_NOTSTORED" class="element ajax clickable constant">
+        <h1>STATUS_NOTSTORED<a href="../namespaces/yrmcds.html#constant_STATUS_NOTSTORED">¶</a></h1>
+        <p class="short_description">Server response status indicating the object is not created nor modified.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_STATUS_NOTSTORED" class="more">« More »</a>
+    </div>
+
+                                        <div id="STATUS_NONNUMERIC" class="element ajax clickable constant">
+        <h1>STATUS_NONNUMERIC<a href="../namespaces/yrmcds.html#constant_STATUS_NONNUMERIC">¶</a></h1>
+        <p class="short_description">Server response status indicating the object is not numeric.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_STATUS_NONNUMERIC" class="more">« More »</a>
+    </div>
+
+                                        <div id="STATUS_LOCKED" class="element ajax clickable constant">
+        <h1>STATUS_LOCKED<a href="../namespaces/yrmcds.html#constant_STATUS_LOCKED">¶</a></h1>
+        <p class="short_description">Server response status indicating the object is locked.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_STATUS_LOCKED" class="more">« More »</a>
+    </div>
+
+                                        <div id="STATUS_NOTLOCKED" class="element ajax clickable constant">
+        <h1>STATUS_NOTLOCKED<a href="../namespaces/yrmcds.html#constant_STATUS_NOTLOCKED">¶</a></h1>
+        <p class="short_description">Server response status indicating the object is _not_ locked.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_STATUS_NOTLOCKED" class="more">« More »</a>
+    </div>
+
+                                        <div id="STATUS_UNKNOWNCOMMAND" class="element ajax clickable constant">
+        <h1>STATUS_UNKNOWNCOMMAND<a href="../namespaces/yrmcds.html#constant_STATUS_UNKNOWNCOMMAND">¶</a></h1>
+        <p class="short_description">Server response status indicating the command is not supported.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_STATUS_UNKNOWNCOMMAND" class="more">« More »</a>
+    </div>
+
+                                        <div id="STATUS_OUTOFMEMORY" class="element ajax clickable constant">
+        <h1>STATUS_OUTOFMEMORY<a href="../namespaces/yrmcds.html#constant_STATUS_OUTOFMEMORY">¶</a></h1>
+        <p class="short_description">Server response status indicating not enough memory.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_STATUS_OUTOFMEMORY" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_GET" class="element ajax clickable constant">
+        <h1>CMD_GET<a href="../namespaces/yrmcds.html#constant_CMD_GET">¶</a></h1>
+        <p class="short_description">Binary command &#039;Get&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_GET" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_SET" class="element ajax clickable constant">
+        <h1>CMD_SET<a href="../namespaces/yrmcds.html#constant_CMD_SET">¶</a></h1>
+        <p class="short_description">Binary command &#039;Set&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_SET" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_ADD" class="element ajax clickable constant">
+        <h1>CMD_ADD<a href="../namespaces/yrmcds.html#constant_CMD_ADD">¶</a></h1>
+        <p class="short_description">Binary command &#039;Add&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_ADD" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_REPLACE" class="element ajax clickable constant">
+        <h1>CMD_REPLACE<a href="../namespaces/yrmcds.html#constant_CMD_REPLACE">¶</a></h1>
+        <p class="short_description">Binary command &#039;Replace&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_REPLACE" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_DELETE" class="element ajax clickable constant">
+        <h1>CMD_DELETE<a href="../namespaces/yrmcds.html#constant_CMD_DELETE">¶</a></h1>
+        <p class="short_description">Binary command &#039;Delete&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_DELETE" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_INCREMENT" class="element ajax clickable constant">
+        <h1>CMD_INCREMENT<a href="../namespaces/yrmcds.html#constant_CMD_INCREMENT">¶</a></h1>
+        <p class="short_description">Binary command &#039;Increment&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_INCREMENT" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_DECREMENT" class="element ajax clickable constant">
+        <h1>CMD_DECREMENT<a href="../namespaces/yrmcds.html#constant_CMD_DECREMENT">¶</a></h1>
+        <p class="short_description">Binary command &#039;Decrement&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_DECREMENT" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_QUIT" class="element ajax clickable constant">
+        <h1>CMD_QUIT<a href="../namespaces/yrmcds.html#constant_CMD_QUIT">¶</a></h1>
+        <p class="short_description">Binary command &#039;Quit&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_QUIT" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_FLUSH" class="element ajax clickable constant">
+        <h1>CMD_FLUSH<a href="../namespaces/yrmcds.html#constant_CMD_FLUSH">¶</a></h1>
+        <p class="short_description">Binary command &#039;Flush&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_FLUSH" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_GETQ" class="element ajax clickable constant">
+        <h1>CMD_GETQ<a href="../namespaces/yrmcds.html#constant_CMD_GETQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;GetQ&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_GETQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_NOOP" class="element ajax clickable constant">
+        <h1>CMD_NOOP<a href="../namespaces/yrmcds.html#constant_CMD_NOOP">¶</a></h1>
+        <p class="short_description">Binary command &#039;Noop&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_NOOP" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_VERSION" class="element ajax clickable constant">
+        <h1>CMD_VERSION<a href="../namespaces/yrmcds.html#constant_CMD_VERSION">¶</a></h1>
+        <p class="short_description">Binary command &#039;Version&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_VERSION" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_GETK" class="element ajax clickable constant">
+        <h1>CMD_GETK<a href="../namespaces/yrmcds.html#constant_CMD_GETK">¶</a></h1>
+        <p class="short_description">Binary command &#039;GetK&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_GETK" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_GETKQ" class="element ajax clickable constant">
+        <h1>CMD_GETKQ<a href="../namespaces/yrmcds.html#constant_CMD_GETKQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;GetKQ&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_GETKQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_APPEND" class="element ajax clickable constant">
+        <h1>CMD_APPEND<a href="../namespaces/yrmcds.html#constant_CMD_APPEND">¶</a></h1>
+        <p class="short_description">Binary command &#039;Append&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_APPEND" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_PREPEND" class="element ajax clickable constant">
+        <h1>CMD_PREPEND<a href="../namespaces/yrmcds.html#constant_CMD_PREPEND">¶</a></h1>
+        <p class="short_description">Binary command &#039;Prepend&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_PREPEND" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_STAT" class="element ajax clickable constant">
+        <h1>CMD_STAT<a href="../namespaces/yrmcds.html#constant_CMD_STAT">¶</a></h1>
+        <p class="short_description">Binary command &#039;Stat&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_STAT" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_SETQ" class="element ajax clickable constant">
+        <h1>CMD_SETQ<a href="../namespaces/yrmcds.html#constant_CMD_SETQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;SetQ&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_SETQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_ADDQ" class="element ajax clickable constant">
+        <h1>CMD_ADDQ<a href="../namespaces/yrmcds.html#constant_CMD_ADDQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;AddQ&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_ADDQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_REPLACEQ" class="element ajax clickable constant">
+        <h1>CMD_REPLACEQ<a href="../namespaces/yrmcds.html#constant_CMD_REPLACEQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;ReplaceQ&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_REPLACEQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_DELETEQ" class="element ajax clickable constant">
+        <h1>CMD_DELETEQ<a href="../namespaces/yrmcds.html#constant_CMD_DELETEQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;DeleteQ&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_DELETEQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_INCREMENTQ" class="element ajax clickable constant">
+        <h1>CMD_INCREMENTQ<a href="../namespaces/yrmcds.html#constant_CMD_INCREMENTQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;IncrementQ&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_INCREMENTQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_DECREMENTQ" class="element ajax clickable constant">
+        <h1>CMD_DECREMENTQ<a href="../namespaces/yrmcds.html#constant_CMD_DECREMENTQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;DecrementQ&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_DECREMENTQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_QUITQ" class="element ajax clickable constant">
+        <h1>CMD_QUITQ<a href="../namespaces/yrmcds.html#constant_CMD_QUITQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;QuitQ&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_QUITQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_FLUSHQ" class="element ajax clickable constant">
+        <h1>CMD_FLUSHQ<a href="../namespaces/yrmcds.html#constant_CMD_FLUSHQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;FlushQ&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_FLUSHQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_APPENDQ" class="element ajax clickable constant">
+        <h1>CMD_APPENDQ<a href="../namespaces/yrmcds.html#constant_CMD_APPENDQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;AppendQ&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_APPENDQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_PREPENDQ" class="element ajax clickable constant">
+        <h1>CMD_PREPENDQ<a href="../namespaces/yrmcds.html#constant_CMD_PREPENDQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;PrependQ&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_PREPENDQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_TOUCH" class="element ajax clickable constant">
+        <h1>CMD_TOUCH<a href="../namespaces/yrmcds.html#constant_CMD_TOUCH">¶</a></h1>
+        <p class="short_description">Binary command &#039;Touch&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_TOUCH" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_GAT" class="element ajax clickable constant">
+        <h1>CMD_GAT<a href="../namespaces/yrmcds.html#constant_CMD_GAT">¶</a></h1>
+        <p class="short_description">Binary command &#039;GaT&#039; (get and touch).</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_GAT" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_GATQ" class="element ajax clickable constant">
+        <h1>CMD_GATQ<a href="../namespaces/yrmcds.html#constant_CMD_GATQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;GaTQ&#039; (get and touch quietly).</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_GATQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_GATK" class="element ajax clickable constant">
+        <h1>CMD_GATK<a href="../namespaces/yrmcds.html#constant_CMD_GATK">¶</a></h1>
+        <p class="short_description">Binary command &#039;GaTK&#039; (get and touch with key).</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_GATK" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_GATKQ" class="element ajax clickable constant">
+        <h1>CMD_GATKQ<a href="../namespaces/yrmcds.html#constant_CMD_GATKQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;GaTKQ&#039; (get and touch with key quietly).</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_GATKQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_LOCK" class="element ajax clickable constant">
+        <h1>CMD_LOCK<a href="../namespaces/yrmcds.html#constant_CMD_LOCK">¶</a></h1>
+        <p class="short_description">Binary command &#039;Lock&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_LOCK" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_LOCKQ" class="element ajax clickable constant">
+        <h1>CMD_LOCKQ<a href="../namespaces/yrmcds.html#constant_CMD_LOCKQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;LockQ&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_LOCKQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_UNLOCK" class="element ajax clickable constant">
+        <h1>CMD_UNLOCK<a href="../namespaces/yrmcds.html#constant_CMD_UNLOCK">¶</a></h1>
+        <p class="short_description">Binary command &#039;Unlock&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_UNLOCK" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_UNLOCKQ" class="element ajax clickable constant">
+        <h1>CMD_UNLOCKQ<a href="../namespaces/yrmcds.html#constant_CMD_UNLOCKQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;UnlockQ&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_UNLOCKQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_UNLOCKALL" class="element ajax clickable constant">
+        <h1>CMD_UNLOCKALL<a href="../namespaces/yrmcds.html#constant_CMD_UNLOCKALL">¶</a></h1>
+        <p class="short_description">Binary command &#039;UnlockAll&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_UNLOCKALL" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_UNLOCKALLQ" class="element ajax clickable constant">
+        <h1>CMD_UNLOCKALLQ<a href="../namespaces/yrmcds.html#constant_CMD_UNLOCKALLQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;UnlockAllQ&#039;.</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_UNLOCKALLQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_LAG" class="element ajax clickable constant">
+        <h1>CMD_LAG<a href="../namespaces/yrmcds.html#constant_CMD_LAG">¶</a></h1>
+        <p class="short_description">Binary command &#039;LaG&#039; (lock and get).</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_LAG" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_LAGQ" class="element ajax clickable constant">
+        <h1>CMD_LAGQ<a href="../namespaces/yrmcds.html#constant_CMD_LAGQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;LaGQ&#039; (lock and get quietly).</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_LAGQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_LAGK" class="element ajax clickable constant">
+        <h1>CMD_LAGK<a href="../namespaces/yrmcds.html#constant_CMD_LAGK">¶</a></h1>
+        <p class="short_description">Binary command &#039;LaGK&#039; (lock and get with key).</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_LAGK" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_LAGKQ" class="element ajax clickable constant">
+        <h1>CMD_LAGKQ<a href="../namespaces/yrmcds.html#constant_CMD_LAGKQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;LaGKQ&#039; (lock and get with key quietly).</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_LAGKQ" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_RAU" class="element ajax clickable constant">
+        <h1>CMD_RAU<a href="../namespaces/yrmcds.html#constant_CMD_RAU">¶</a></h1>
+        <p class="short_description">Binary command &#039;RaU&#039; (replace and unlock).</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_RAU" class="more">« More »</a>
+    </div>
+
+                                        <div id="CMD_RAUQ" class="element ajax clickable constant">
+        <h1>CMD_RAUQ<a href="../namespaces/yrmcds.html#constant_CMD_RAUQ">¶</a></h1>
+        <p class="short_description">Binary command &#039;RaUQ&#039; (replace and unlock quietly).</p>
+        <div class="details collapse"></div>
+        <a href="../namespaces/yrmcds.html#constant_CMD_RAUQ" class="more">« More »</a>
+    </div>
+
+                            </div>
+        
+                    <div class="package-indent">
+                <h3><i class="icon-custom icon-class"></i> Classes, interfaces and traits</h3>
+                
+                
+                                        <div id="Client" class="element ajax clickable class">
+        <h1>Client<a href="../classes/yrmcds.Client.html">¶</a></h1>
+        <p class="short_description">Memcached client class.</p>
+        <div class="details collapse">Instances of this class represents a connection to a memcached/yrmcds
+server.  Most methods may throw \yrmcds\Error when a
+non-recoverable error happens.</div>
+        <a href="../classes/yrmcds.Client.html" class="more">« More »</a>
+    </div>
+
+                                        <div id="Error" class="element ajax clickable class">
+        <h1>Error<a href="../classes/yrmcds.Error.html">¶</a></h1>
+        <p class="short_description">Exception for \yrmcds\Client.</p>
+        <div class="details collapse">Instances bring a meaningful message and an error code.</div>
+        <a href="../classes/yrmcds.Error.html" class="more">« More »</a>
+    </div>
+
+                                        <div id="Response" class="element ajax clickable class">
+        <h1>Response<a href="../classes/yrmcds.Response.html">¶</a></h1>
+        <p class="short_description">Response from memcached / yrmcds server.</p>
+        <div class="details collapse">This class represents a command response from the server.
+
+All instances have these properties:
+
+* $status
+* $serial
+* $length
+* $command
+
+Other properties may or may not be available.
+Test their availabilities by `property_exists()`.</div>
+        <a href="../classes/yrmcds.Response.html" class="more">« More »</a>
+    </div>
+
+                            </div>
+            
+    
+                
+    
+        <ul class="breadcrumb">
+            <li><a href="../index.html"><i class="icon-th"></i></a></li>
+                
+                
+    
+    <li>
+        <span class="divider">\</span><a href="../packages/default.html"></a>
+    </li>
+
+    
+    <li>
+        <span class="divider">\</span><a href="../packages/session.html">session</a>
+    </li>
+
+        </ul>
+
+        
+        
+                    <div class="package-indent">
+                <h3><i class="icon-custom icon-class"></i> Classes, interfaces and traits</h3>
+                
+                
+                                        <div id="TimeoutException" class="element ajax clickable class">
+        <h1>TimeoutException<a href="../classes/yrmcds.TimeoutException.html">¶</a></h1>
+        <p class="short_description">This exception will be thrown if \yrmcds\SessionHandler
+cannot acquire the session lock.</p>
+        <div class="details collapse"></div>
+        <a href="../classes/yrmcds.TimeoutException.html" class="more">« More »</a>
+    </div>
+
+                                        <div id="SessionHandler" class="element ajax clickable class">
+        <h1>SessionHandler<a href="../classes/yrmcds.SessionHandler.html">¶</a></h1>
+        <p class="short_description">A session handler class based on \yrmcds\Client .</p>
+        <div class="details collapse">This class requires PHP5.4+ because this implements
+\SessionHandlerInterface available since PHP5.4.
+
+This class only works with yrmcds because server-side locking
+is not implemented in memcached.
+
+To set the session handler, pass an instace of this class
+to `session_set_save_handler()`.</div>
+        <a href="../classes/yrmcds.SessionHandler.html" class="more">« More »</a>
+    </div>
+
+                            </div>
+            
+    
+    
+        </div>
+    </div>
+    </div>
+
+        <footer class="span12">
+            Template is built using <a href="http://twitter.github.com/bootstrap/">Twitter Bootstrap 2</a> and icons provided by
+            <a href="http://glyphicons.com/">Glyphicons</a>.<br/>
+            Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor </a> and<br/>
+            generated on Thu, 08 Aug 2013 17:57:18 +0000.<br/>
+    </footer>
+    </body>
+</html>
