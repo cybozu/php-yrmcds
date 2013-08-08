@@ -1,4 +1,4 @@
-# Makefile for phpDocumentor2
+# Makefile for phpDocumentor2 -*- mode: Makefile -*-
 
 BINDIR = /usr/local/php/bin
 PHP = $(BINDIR)/php
@@ -23,6 +23,12 @@ serve: html
 	(cd html; python -m SimpleHTTPServer 8888)
 
 clean:
-	rm -rf output html *.o *.lo *.la */*.o */*.lo .libs
+	rm -rf output html *.o *.lo *.la */*.o */*.lo .libs .deps
+	rm -rf acinclude.m4 aclocal.m4 autom4te.cache build config.guess
+	rm -rf include modules
+	rm -f Makefile Makefile.fragments Makefile.objects Makefile.global
+	rm -f config.h config.h.in config.log config.nice config.status
+	rm -f config.sub configure configure.in install-sh libtool ltmain.sh
+	rm -f missing mkinstalldirs run-tests.php
 
 .PHONY: setup phpdoc html
