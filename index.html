@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>php-yrmcds by cybozu</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>php-yrmcds</h1>
+        <p>A full-featured memcached / yrmcds client extension for PHP5.</p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/cybozu/php-yrmcds" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/cybozu/php-yrmcds/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/cybozu/php-yrmcds/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <h2>
+<a name="want-a-stable-memcached-extension-for-php--this-is-it" class="anchor" href="#want-a-stable-memcached-extension-for-php--this-is-it"><span class="octicon octicon-link"></span></a>Want a stable memcached extension for PHP?   This is it.</h2>
+
+<p>This PHP extension provides an object-oriented interface of <a href="http://cybozu.github.io/libyrmcds/">libyrmcds</a>,
+a full-featured <a href="http://memcached.org/">memcached</a> / <a href="http://cybozu.github.io/yrmcds/">yrmcds</a> client library.</p>
+
+<p><a href="http://cybozu.github.io/yrmcds/">yrmcds</a> is a complete rewrite of memcached that supports replication
+and the <a href="https://github.com/cybozu/yrmcds/blob/master/docs/locking.md">server-side locking</a>. <a href="http://cybozu.github.io/libyrmcds/">libyrmcds</a> is a companion
+client library for yrmcds.</p>
+
+<p>Thanks to yrmcds' server-side locking, this extension can provide a
+stable object locking mechanism when combined with <a href="http://cybozu.github.io/yrmcds/">yrmcds</a>.</p>
+
+<h3>
+<a name="features" class="anchor" href="#features"><span class="octicon octicon-link"></span></a>Features</h3>
+
+<ul>
+<li>Access to all memcached / yrmcds binary protocol commands.</li>
+<li>Persistent <strong>stable</strong> connections.<br>
+Trust me, it is really stable.</li>
+<li>Auto prefix keys.</li>
+<li>Asynchronous operations.</li>
+</ul><p>As a bonus, a <a href="yrmcds_session.php">session handler</a> utilizing yrmcds'
+server-side locking is also available.</p>
+
+<h3>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h3>
+
+<ul>
+<li>PHP 5.4 or better.</li>
+<li>Linux.</li>
+</ul><h3>
+<a name="documents" class="anchor" href="#documents"><span class="octicon octicon-link"></span></a>Documents</h3>
+
+<p><a href="https://github.com/cybozu/php-yrmcds/blob/master/USAGE.md">A usage guide</a> is available.</p>
+
+<p>API documents are also available <a href="html/">here</a>.</p>
+
+<h3>
+<a name="support" class="anchor" href="#support"><span class="octicon octicon-link"></span></a>Support</h3>
+
+<p>Please use <a href="https://github.com/cybozu/php-yrmcds/issues">GitHub Issues</a>.</p>
+
+<h3>
+<a name="authors-and-license" class="anchor" href="#authors-and-license"><span class="octicon octicon-link"></span></a>Authors and License</h3>
+
+<p>The primary author is <a href="https://github.com/ymmt2005" class="user-mention">@ymmt2005</a> (<a href="https://twitter.com/ymmt2005">twitter</a>) at <a href="http://www.cybozu.com/us/">Cybozu</a>.</p>
+
+<p>This software is licensed under <a href="http://opensource.org/licenses/BSD-2-Clause">the BSD 2-clause license</a>.</p>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/cybozu">cybozu</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-42201828-2");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
