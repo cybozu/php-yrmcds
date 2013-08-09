@@ -18,6 +18,7 @@ Features
 * Persistent **stable** connections.  
   Trust me, it is really stable.
 * Auto prefix keys.
+* Transparent LZ4 compression for large objects.
 * Asynchronous operations.
 
 As a bonus, a [session handler](yrmcds_session.php) utilizing yrmcds'

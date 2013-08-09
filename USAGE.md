@@ -160,8 +160,8 @@ Session handler
 `yrmcds_session.php` provides a session handler class utilizing the
 server-side locking mechanism of yrmcds.
 
-Compared to the [widely used client-side locking technique][1], the
-server-side locking is far more robust.
+Compared to the [widely adopted client-side locking technique using `add`][1],
+the server-side locking is far more robust.
 
 Anyways, this is how to use the session handler:
 
@@ -173,8 +173,8 @@ session_set_save_handler( $handler );
 session_start();
 ```
 
-The expiration time of inactive sessions and the timeout of acquiring
-locks can be configured by specifying the second and the third parameter
+The expiration time of inactive sessions and the timeout of lock acquisition
+can be configured by specifying the second and the third parameters
 of `\yrmcds\SessionHandler` constructor:
 
 ```php
