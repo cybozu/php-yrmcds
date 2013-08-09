@@ -15,8 +15,7 @@ Features
 --------
 
 * Access to all memcached / yrmcds binary protocol commands.
-* Persistent **stable** connections.  
-  Trust me, it is really stable.
+* Persistent connections.
 * Auto prefix keys.
 * Transparent LZ4 compression for large objects.
 * Asynchronous operations.
