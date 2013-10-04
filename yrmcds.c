@@ -49,6 +49,19 @@ ZEND_DECLARE_MODULE_GLOBALS(yrmcds)
             }                                                           \
         }                                                               \
     } while( 0 )
+#define PRINT_YRMCDS_ERROR(e) \
+    do {                                                                \
+        int __e = (e);                                                  \
+        char __buf[256];                                                \
+        if( __e == YRMCDS_SYSTEM_ERROR ) {                              \
+            snprintf(__buf, sizeof(__buf), "yrmcds: %s",                \
+                     sys_errlist[errno]);                               \
+        } else {                                                        \
+            snprintf(__buf, sizeof(__buf), "yrmcds: %s",                \
+                     yrmcds_strerror(__e));                             \
+        }                                                               \
+        php_log_err(__buf TSRMLS_CC);                                   \
+    } while( 0 )
 #define DEF_YRMCDS_CONST(name, value)                    \
     REGISTER_NS_LONG_CONSTANT("yrmcds", name, (value),   \
                               CONST_CS|CONST_PERSISTENT)
@@ -88,6 +101,7 @@ static void php_yrmcds_resource_dtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
         }
 
       ERROR:
+        PRINT_YRMCDS_ERROR(e);
         php_log_err("yrmcds: broken persistent connection" TSRMLS_CC);
         char* hash_key;
         int hash_key_len = HASH_KEY(hash_key, c->persist_id);

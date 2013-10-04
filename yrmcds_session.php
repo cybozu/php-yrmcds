@@ -4,7 +4,7 @@
  * Session handler using yrmcds extension.
  *
  * @author Yamamoto, Hirotaka
- * @version 1.0.0
+ * @version 1.0.1
  * @copyright (C) 2013 Cybozu.
  * @license 2-clause BSD
  * @package session
