@@ -316,9 +316,13 @@ class Client {
      * @param int     $port        The port number.
      * @param string  $persist_id  Persistent connection ID.
      * @param string  $prefix      Auto-prefix for keys.
+     * @param bool    $detect_stale_connection
+     *                             If true, checks for stale persistent connection and
+     *                             automatically reconnect when the connection is broken.
      */
     function __construct($node, $port = 11211,
-                         $persist_id = NULL, $prefix = NULL) {}
+                         $persist_id = NULL, $prefix = NULL,
+                         $detect_stale_connection = FALSE) {}
 
     /**
      * Set socket timeouts.
