@@ -36,6 +36,7 @@ typedef struct {
 ZEND_BEGIN_MODULE_GLOBALS(yrmcds)
     long compression_threshold;
     long default_timeout;
+    zend_bool detect_stale_connection;
 ZEND_END_MODULE_GLOBALS(yrmcds)
 
 #ifdef ZTS
