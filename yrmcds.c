@@ -81,6 +81,15 @@ static zend_class_entry* ce_yrmcds_client;
 static zend_class_entry* ce_yrmcds_error;
 static zend_class_entry* ce_yrmcds_response;
 
+static void on_broken_connection_detected(php_yrmcds_t* conn, int err) {
+    PRINT_YRMCDS_ERROR(err);
+    php_log_err("yrmcds: broken persistent connection" TSRMLS_CC);
+    char* hash_key;
+    int hash_key_len = HASH_KEY(hash_key, conn->persist_id);
+    zend_hash_del(&EG(persistent_list), hash_key, hash_key_len + 1);
+    efree(hash_key);
+}
+
 /* Resource destructors. */
 static void php_yrmcds_resource_dtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
     php_yrmcds_t* c = (php_yrmcds_t*)rsrc->ptr;
@@ -101,12 +110,7 @@ static void php_yrmcds_resource_dtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
         }
 
       ERROR:
-        PRINT_YRMCDS_ERROR(e);
-        php_log_err("yrmcds: broken persistent connection" TSRMLS_CC);
-        char* hash_key;
-        int hash_key_len = HASH_KEY(hash_key, c->persist_id);
-        zend_hash_del(&EG(persistent_list), hash_key, hash_key_len + 1);
-        efree(hash_key);
+        on_broken_connection_detected(c, e);
         return;
     }
     yrmcds_close(&c->res);
@@ -121,6 +125,47 @@ static void php_yrmcds_resource_pdtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
     yrmcds_close(&c->res);
     pefree((void*)c->persist_id, 1);
     pefree(c, 1);
+}
+
+static int check_persistent_connection(php_yrmcds_t* conn) {
+    int e;
+    uint32_t serial;
+    e = yrmcds_set_timeout(&conn->res, 1);
+    if( e != 0 ) return e;
+    e = yrmcds_noop(&conn->res, &serial);
+    if( e != 0 ) return e;
+    while( 1 ) {
+        yrmcds_response r;
+        e = yrmcds_recv(&conn->res, &r);
+        if( e != YRMCDS_STATUS_OK )
+            return e;
+        if( r.serial == serial )
+            break;
+    }
+    e = yrmcds_set_timeout(&conn->res, (int)YRMCDS_G(default_timeout));
+    if( e != 0 ) return e;
+    return 0;
+}
+
+static int use_existing_persistent_connection(
+        const char* hash_key, int hash_key_len, int* res) {
+    zend_rsrc_list_entry* existing_conn;
+
+    if( zend_hash_find(&EG(persistent_list), hash_key, hash_key_len+1,
+                (void**)&existing_conn) != SUCCESS )
+        return -1;
+
+    php_yrmcds_t* c = existing_conn->ptr;
+    if( (zend_bool)YRMCDS_G(detect_stale_connection) ) {
+        int e = check_persistent_connection(c);
+        if (e != 0) {
+            on_broken_connection_detected(c, e);
+            return -1;
+        }
+    }
+
+    *res = zend_list_insert(existing_conn->ptr, le_yrmcds TSRMLS_CC);
+    return 0;
 }
 
 // \yrmcds\Client::__construct
@@ -158,13 +203,9 @@ YRMCDS_METHOD(Client, __construct) {
     if( persist_id_len > 0 ) {
         char* hash_key;
         int hash_key_len = HASH_KEY(hash_key, persist_id);
-        zend_rsrc_list_entry* existing_conn;
 
-        if( zend_hash_find(&EG(persistent_list), hash_key, hash_key_len+1,
-                           (void**)&existing_conn) == SUCCESS ) {
-            res = zend_list_insert(existing_conn->ptr, le_yrmcds TSRMLS_CC);
-
-        } else {
+        int e = use_existing_persistent_connection(hash_key, hash_key_len, &res);
+        if (e != 0) {
             php_yrmcds_t* c = pemalloc(sizeof(php_yrmcds_t), 1);
             c->persist_id = pestrndup(persist_id, persist_id_len, 1);;
             CHECK_YRMCDS( yrmcds_connect(&c->res, node, (uint16_t)port) );
@@ -1550,6 +1591,10 @@ PHP_INI_BEGIN()
     STD_PHP_INI_ENTRY("yrmcds.default_timeout",
                       "5", PHP_INI_SYSTEM, OnUpdateLong,
                       default_timeout,
+                      zend_yrmcds_globals, yrmcds_globals)
+    STD_PHP_INI_ENTRY("yrmcds.detect_stale_connection",
+                      "1", PHP_INI_SYSTEM, OnUpdateBool,
+                      detect_stale_connection,
                       zend_yrmcds_globals, yrmcds_globals)
 PHP_INI_END()
 /* }}} */
