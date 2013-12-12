@@ -3,3 +3,6 @@ Copyright (C) 2013 Cybozu.  Yamamoto, Hirotaka.
 
 This program contains LZ4 data compression library developed by:
 Copyright (C) 2011-2013, Yann Collet.
+
+Contributors:
+    Shuhei Tanuma <shuhei.tanuma@gmail.com>
