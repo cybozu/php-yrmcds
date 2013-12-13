@@ -17,7 +17,7 @@ setup:
 phpdoc:
 	$(PEAR) channel-discover pear.phpdoc.org
 	$(PEAR) install phpdoc/phpDocumentor
-        echo 'date.timezone = UTC' > /usr/local/php/etc/php.ini
+	echo 'date.timezone = UTC' > /usr/local/php/etc/php.ini
 
 serve: html
 	(cd html; python -m SimpleHTTPServer 8888)

@@ -16,7 +16,7 @@
         </paths>
     </logging>
     <transformations>
-        <template name="responsive-twig" />
+        <template name="responsive" />
     </transformations>
     <files>
         <file>yrmcds-api.php</file>
