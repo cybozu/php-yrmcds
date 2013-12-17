@@ -101,27 +101,27 @@ static void on_broken_connection_detected(
 static void php_yrmcds_resource_dtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
     php_yrmcds_t* c = (php_yrmcds_t*)rsrc->ptr;
     if( c->persist_id ) {
-        yrmcds_status status = YRMCDS_STATUS_OK;
         uint32_t serial;
         yrmcds_set_timeout(&c->res, (int)YRMCDS_G(default_timeout));
         int e = yrmcds_unlockall(&c->res, 0, &serial);
-        if( e != YRMCDS_OK ) goto ERROR;
-        while( 1 ) {
-            yrmcds_response r;
-            e = yrmcds_recv(&c->res, &r);
-            if( e != YRMCDS_OK )
-                goto ERROR;
-            status = r.status;
-            if( status != YRMCDS_STATUS_OK &&
-                // memcached does not support locking, so
-                status != YRMCDS_STATUS_UNKNOWNCOMMAND )
-                goto ERROR;
-            if( r.serial == serial )
-                return;
+        if( e != YRMCDS_OK ) {
+            on_broken_connection_detected(c, e, YRMCDS_STATUS_OK TSRMLS_CC);
+            return;
         }
-
-      ERROR:
-        on_broken_connection_detected(c, e, status TSRMLS_CC);
+        yrmcds_response r;
+        do {
+            e = yrmcds_recv(&c->res, &r);
+            if( e != YRMCDS_OK ) {
+                on_broken_connection_detected(c, e, YRMCDS_STATUS_OK TSRMLS_CC);
+                return;
+            }
+        } while( r.serial != serial );
+        if( r.status != YRMCDS_STATUS_OK &&
+            // memcached does not support locking, so
+            r.status != YRMCDS_STATUS_UNKNOWNCOMMAND ) {
+            on_broken_connection_detected(c, e, r.status TSRMLS_CC);
+            return;
+        }
         return;
     }
     yrmcds_close(&c->res);
@@ -147,20 +147,16 @@ static yrmcds_error check_persistent_connection(
     uint32_t serial;
     e = yrmcds_noop(&conn->res, &serial);
     if( e != YRMCDS_OK ) return e;
-    while( 1 ) {
-        yrmcds_response r;
+    yrmcds_response r;
+    do {
         e = yrmcds_recv(&conn->res, &r);
         if( e != YRMCDS_OK )
             return e;
-        *status = r.status;
-        if( *status != YRMCDS_STATUS_OK )
-            return e;
-        if( r.serial == serial )
-            break;
-    }
-    e = yrmcds_set_timeout(&conn->res, (int)YRMCDS_G(default_timeout));
-    if( e != YRMCDS_OK ) return e;
-    return YRMCDS_OK;
+    } while( r.serial != serial );
+    *status = r.status;
+    if( *status != YRMCDS_STATUS_OK )
+        return e;
+    return yrmcds_set_timeout(&conn->res, (int)YRMCDS_G(default_timeout));
 }
 
 static int use_existing_persistent_connection(
