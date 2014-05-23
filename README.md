@@ -27,7 +27,7 @@ Requirements
 ------------
 
 * PHP 5.4 or better.
-* Linux.
+* Linux or MacOS X.
 
 Install
 -------
