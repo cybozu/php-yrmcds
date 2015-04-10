@@ -27,6 +27,7 @@ extern zend_module_entry yrmcds_module_entry;
 
 typedef struct {
     const char* persist_id;
+    size_t reference_count;
     yrmcds res;
 } php_yrmcds_t;
 
