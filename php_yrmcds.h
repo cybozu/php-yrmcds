@@ -46,4 +46,6 @@ ZEND_END_MODULE_GLOBALS(yrmcds)
 #define YRMCDS_G(v) (yrmcds_globals.v)
 #endif
 
+#define PHP_YRMCDS_UNEXPECTED_RESPONSE 256
+
 #endif  /* PHP_YRMCDS_H */
