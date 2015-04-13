@@ -81,8 +81,9 @@ static zend_class_entry* ce_yrmcds_client;
 static zend_class_entry* ce_yrmcds_error;
 static zend_class_entry* ce_yrmcds_response;
 
-static void on_broken_connection_detected(
-        php_yrmcds_t* conn, yrmcds_error err, yrmcds_status status TSRMLS_DC) {
+static void
+on_broken_connection_detected(php_yrmcds_t* conn, yrmcds_error err,
+                              yrmcds_status status TSRMLS_DC) {
     if( err != YRMCDS_OK )
         PRINT_YRMCDS_ERROR(err);
     if( status != YRMCDS_STATUS_OK && status != YRMCDS_STATUS_UNKNOWNCOMMAND ) {
@@ -91,15 +92,22 @@ static void on_broken_connection_detected(
         php_log_err(buf TSRMLS_CC);
     }
     php_log_err("yrmcds: broken persistent connection" TSRMLS_CC);
-    char* hash_key;
-    int hash_key_len = HASH_KEY(hash_key, conn->persist_id);
-    zend_hash_del(&EG(persistent_list), hash_key, hash_key_len + 1);
-    efree(hash_key);
+    if( conn->reference_count == 0 ) {
+        // Since `conn` is the last user of this persistent connection,
+        // we should clean up resources.
+        char* hash_key;
+        int hash_key_len = HASH_KEY(hash_key, conn->persist_id);
+        zend_hash_del(&EG(persistent_list), hash_key, hash_key_len + 1);
+        efree(hash_key);
+    }
 }
 
 /* Resource destructors. */
 static void php_yrmcds_resource_dtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
     php_yrmcds_t* c = (php_yrmcds_t*)rsrc->ptr;
+
+    c->reference_count -= 1;
+
     if( c->persist_id ) {
         uint32_t serial;
         yrmcds_set_timeout(&c->res, (int)YRMCDS_G(default_timeout));
@@ -124,6 +132,10 @@ static void php_yrmcds_resource_dtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
         }
         return;
     }
+
+    // Since `c` does not use persistent connection,
+    // the resources of `c` is not shared with other clients.
+    // Therefore, we can clean up resources here.
     yrmcds_close(&c->res);
     efree(c);
 }
@@ -133,13 +145,19 @@ static void php_yrmcds_resource_pdtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
     if( ! c->persist_id )
         return;
 
+    if( c->reference_count != 0 ) {
+        char buf[256];
+        snprintf(buf, sizeof(buf), "yrmcds: non-zero reference_count on pdtor: %zu", c->reference_count);
+        php_log_err(buf TSRMLS_CC);
+    }
+
     yrmcds_close(&c->res);
     pefree((void*)c->persist_id, 1);
     pefree(c, 1);
 }
 
-static yrmcds_error check_persistent_connection(
-        php_yrmcds_t* conn, yrmcds_status* status TSRMLS_DC) {
+static yrmcds_error
+check_persistent_connection(php_yrmcds_t* conn, yrmcds_status* status TSRMLS_DC) {
     yrmcds_error e;
     *status = YRMCDS_STATUS_OK;
     e = yrmcds_set_timeout(&conn->res, 1);
@@ -159,26 +177,39 @@ static yrmcds_error check_persistent_connection(
     return yrmcds_set_timeout(&conn->res, (int)YRMCDS_G(default_timeout));
 }
 
-static int use_existing_persistent_connection(
-        const char* hash_key, int hash_key_len, int* res TSRMLS_DC) {
+typedef enum {
+    UEPC_OK,
+    UEPC_NOT_FOUND,
+    UEPC_BROKEN,
+    UEPC_BROKEN_AND_OCCUPIED,
+} uepc_status;
+
+static uepc_status
+use_existing_persistent_connection(const char* hash_key, int hash_key_len,
+                                   int* res, yrmcds_error* err,
+                                   yrmcds_status* status TSRMLS_DC) {
     zend_rsrc_list_entry* existing_conn;
 
     if( zend_hash_find(&EG(persistent_list), hash_key, hash_key_len+1,
-                (void**)&existing_conn) != SUCCESS )
-        return -1;
+                       (void**)&existing_conn) != SUCCESS )
+        return UEPC_NOT_FOUND;
 
     php_yrmcds_t* c = existing_conn->ptr;
+
     if( (zend_bool)YRMCDS_G(detect_stale_connection) ) {
-        yrmcds_status status;
-        yrmcds_error e = check_persistent_connection(c, &status TSRMLS_CC);
-        if( e != YRMCDS_OK || status != YRMCDS_STATUS_OK ) {
-            on_broken_connection_detected(c, e, status TSRMLS_CC);
-            return -1;
+        *err = check_persistent_connection(c, status TSRMLS_CC);
+        if( *err != YRMCDS_OK || *status != YRMCDS_STATUS_OK ) {
+            size_t refcount = c->reference_count;
+            on_broken_connection_detected(c, *err, *status TSRMLS_CC);
+            if( refcount != 0 )
+                return UEPC_BROKEN_AND_OCCUPIED;
+            return UEPC_BROKEN;
         }
     }
 
+    c->reference_count += 1;
     *res = zend_list_insert(existing_conn->ptr, le_yrmcds TSRMLS_CC);
-    return 0;
+    return UEPC_OK;
 }
 
 // \yrmcds\Client::__construct
@@ -217,11 +248,29 @@ YRMCDS_METHOD(Client, __construct) {
         char* hash_key;
         int hash_key_len = HASH_KEY(hash_key, persist_id);
 
-        int e = use_existing_persistent_connection(
-                    hash_key, hash_key_len, &res TSRMLS_CC);
-        if( e != 0 ) {
+        yrmcds_error err = YRMCDS_OK;
+        yrmcds_status status = YRMCDS_STATUS_OK;
+        uepc_status s = use_existing_persistent_connection(hash_key, hash_key_len,
+                                                           &res, &err,
+                                                           &status TSRMLS_CC);
+        if( s == UEPC_BROKEN_AND_OCCUPIED ) {
+            // Since the persistent connection is broken and used by other client,
+            // we cannot destruct the connection.
+            // Therefore, we throw exception and return.
+            CHECK_YRMCDS(err);
+            zend_throw_exception_ex(ce_yrmcds_error,
+                                    PHP_YRMCDS_UNEXPECTED_RESPONSE TSRMLS_CC,
+                                    "yrmcds: unexpected response (%d)", status);
+            RETURN_FALSE;
+        }
+        if( s == UEPC_NOT_FOUND || s == UEPC_BROKEN ) {
+            // There are no persistent connections with the given ID, or
+            // there is a broken persistent connection with the given ID and
+            // no one use it.
+            // Therefore, we create new persistent connection with the given ID.
             php_yrmcds_t* c = pemalloc(sizeof(php_yrmcds_t), 1);
-            c->persist_id = pestrndup(persist_id, persist_id_len, 1);;
+            c->persist_id = pestrndup(persist_id, persist_id_len, 1);
+            c->reference_count = 1;
             CHECK_YRMCDS( yrmcds_connect(&c->res, node, (uint16_t)port) );
             CHECK_YRMCDS( yrmcds_set_compression(
                               &c->res, (size_t)YRMCDS_G(compression_threshold)) );
@@ -234,10 +283,12 @@ YRMCDS_METHOD(Client, __construct) {
             zend_hash_update(&EG(persistent_list), hash_key, hash_key_len+1,
                              (void*)&le, sizeof(le), NULL);
         }
+        // If s == UEPC_OK, we can use the returned presistent connection.
         efree(hash_key);
     } else {
         php_yrmcds_t* c = emalloc(sizeof(php_yrmcds_t));
         c->persist_id = NULL;
+        c->reference_count = 1;
         CHECK_YRMCDS( yrmcds_connect(&c->res, node, (uint16_t)port) );
         CHECK_YRMCDS( yrmcds_set_compression(
                           &c->res, (size_t)YRMCDS_G(compression_threshold)) );
