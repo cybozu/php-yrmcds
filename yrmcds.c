@@ -81,8 +81,9 @@ static zend_class_entry* ce_yrmcds_client;
 static zend_class_entry* ce_yrmcds_error;
 static zend_class_entry* ce_yrmcds_response;
 
-static void on_broken_connection_detected(
-        php_yrmcds_t* conn, yrmcds_error err, yrmcds_status status TSRMLS_DC) {
+static void
+on_broken_connection_detected(php_yrmcds_t* conn, yrmcds_error err,
+                              yrmcds_status status TSRMLS_DC) {
     if( err != YRMCDS_OK )
         PRINT_YRMCDS_ERROR(err);
     if( status != YRMCDS_STATUS_OK && status != YRMCDS_STATUS_UNKNOWNCOMMAND ) {
@@ -155,8 +156,8 @@ static void php_yrmcds_resource_pdtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
     pefree(c, 1);
 }
 
-static yrmcds_error check_persistent_connection(
-        php_yrmcds_t* conn, yrmcds_status* status TSRMLS_DC) {
+static yrmcds_error
+check_persistent_connection(php_yrmcds_t* conn, yrmcds_status* status TSRMLS_DC) {
     yrmcds_error e;
     *status = YRMCDS_STATUS_OK;
     e = yrmcds_set_timeout(&conn->res, 1);
@@ -183,13 +184,14 @@ typedef enum {
     UEPC_BROKEN_AND_OCCUPIED,
 } uepc_status;
 
-static uepc_status use_existing_persistent_connection(
-        const char* hash_key, int hash_key_len,
-        int* res, yrmcds_error* err, yrmcds_status* status TSRMLS_DC) {
+static uepc_status
+use_existing_persistent_connection(const char* hash_key, int hash_key_len,
+                                   int* res, yrmcds_error* err,
+                                   yrmcds_status* status TSRMLS_DC) {
     zend_rsrc_list_entry* existing_conn;
 
     if( zend_hash_find(&EG(persistent_list), hash_key, hash_key_len+1,
-                (void**)&existing_conn) != SUCCESS )
+                       (void**)&existing_conn) != SUCCESS )
         return UEPC_NOT_FOUND;
 
     php_yrmcds_t* c = existing_conn->ptr;
@@ -248,8 +250,9 @@ YRMCDS_METHOD(Client, __construct) {
 
         yrmcds_error err = YRMCDS_OK;
         yrmcds_status status = YRMCDS_STATUS_OK;
-        uepc_status s = use_existing_persistent_connection(
-                    hash_key, hash_key_len, &res, &err, &status TSRMLS_CC);
+        uepc_status s = use_existing_persistent_connection(hash_key, hash_key_len,
+                                                           &res, &err,
+                                                           &status TSRMLS_CC);
         if( s == UEPC_BROKEN_AND_OCCUPIED ) {
             // Since the persistent connection is broken and used by other client,
             // we cannot destruct the connection.
