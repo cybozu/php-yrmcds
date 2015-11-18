@@ -1,6 +1,6 @@
 /** @file yrmcds.h
  * libyrmcds public API.
- * (C) 2013 Cybozu.
+ * (C) 2013-2015 Cybozu.
  */
 
 #pragma once
@@ -8,8 +8,8 @@
 #ifndef YRMCDS_H_INCLUDED
 #define YRMCDS_H_INCLUDED
 
-#define LIBYRMCDS_VERSION        "1.0.0"
-#define LIBYRMCDS_VERSION_NUMBER  10000
+#define LIBYRMCDS_VERSION        "1.2.1"
+#define LIBYRMCDS_VERSION_NUMBER  10201
 
 #include <pthread.h>
 #include <stddef.h>
@@ -108,6 +108,8 @@ typedef enum {
     YRMCDS_CMD_RAU        = '\x4a',
     YRMCDS_CMD_RAUQ       = '\x4b',
 
+    YRMCDS_CMD_KEYS       = '\x50',
+
     YRMCDS_CMD_BOTTOM     // place this at the bottom.
 } yrmcds_command;
 
@@ -143,6 +145,7 @@ typedef enum {
     YRMCDS_OUT_OF_MEMORY,     ///< malloc/realloc failed.
     YRMCDS_COMPRESS_FAILED,   ///< LZ4 compression failed.
     YRMCDS_PROTOCOL_ERROR,    ///< received malformed packet.
+    YRMCDS_NOT_IMPLEMENTED,   ///< the function is not available.
 } yrmcds_error;
 
 
@@ -191,6 +194,21 @@ yrmcds_error yrmcds_close(yrmcds* c);
 
 
 /**
+ * Shutdown the receiving end of the socket.
+ * @param  c     A pointer to ::yrmcds.
+ * @return 0 if \p c is valid.  Other values indicate an error.
+ *
+ * This function simply calls \p shutdown system call with \p SHUT_RD .
+ * This can be used to interrupt a thread waiting in ::yrmcds_recv.
+ *
+ * Note that interrupted ::yrmcds_recv will return ::YRMCDS_DISCONNECTED.
+ *
+ * \see https://github.com/cybozu/libyrmcds/issues/8
+ */
+yrmcds_error yrmcds_shutdown(yrmcds* c);
+
+
+/**
  * Enable/disable (de)compression for large objects.
  * @param  c     A pointer to ::yrmcds.
  * @param  threshold  The threshold for compression.
@@ -200,6 +218,9 @@ yrmcds_error yrmcds_close(yrmcds* c);
  * is greater than 0.  If \p threshold is 0, then compression is disabled.
  *
  * The compression is disabled by default.
+ *
+ * If the library is built without LZ4, this function always return
+ * ::YRMCDS_NOT_IMPLEMENTED.
  *
  * Note that ::YRMCDS_FLAG_COMPRESS bit in the flags of compressed objects
  * will be used by the library iff the compression is enabled.
@@ -235,8 +256,11 @@ yrmcds_error yrmcds_set_timeout(yrmcds* c, int timeout);
  * this function, though command sending functions can be used in parallel.
  *
  * The response data stored in \p r keep valid until the next call of this
- * function or until yrmcds_close() is called.  \p r can be reused for the
- * next call of yrmcds_recv().
+ * function or until ::yrmcds_close is called.  \p r can be reused for the
+ * next call of ::yrmcds_recv.
+ *
+ * This will return ::YRMCDS_DISCONNECTED when the socket is closed or
+ * ::yrmcds_shutdown is called from another thread.
  */
 yrmcds_error yrmcds_recv(yrmcds* c, yrmcds_response* r);
 
@@ -728,6 +752,19 @@ yrmcds_error yrmcds_stat_sizes(yrmcds* c, uint32_t* serial);
 
 
 /**
+ * Send Keys command to list all keys matching the given prefix.
+ * To retrieve all keys, pass \p NULL and 0 as \p prefix and \p prefix_len.
+ * @param  c          A pointer to ::yrmcds.
+ * @param  prefix     Prefix data.
+ * @param  prefix_len Length of \p prefix.
+ * @param  serial     A pointer to \p uint32_t, or \p NULL.
+ * @return 0 if succeeded.  Other values indicate an error.
+ */
+yrmcds_error yrmcds_keys(yrmcds* c, const char* prefix, size_t prefix_len,
+                         uint32_t* serial);
+
+
+/**
  * Send Version command.
  * @param  c         A pointer to ::yrmcds.
  * @param  serial    A pointer to \p uint32_t, or \p NULL.
@@ -750,7 +787,255 @@ yrmcds_error yrmcds_quit(yrmcds* c, int quiet, uint32_t* serial);
  * @}
  * @mainpage A memcached/yrmcds client library for C.
  *
- * \ref yrmcds_functions
+ * - \ref yrmcds_functions
+ * - \ref yrmcds_cnt_functions
+ */
+
+/**
+ * Data structure to store the reference to a statistic data for the counter extension.
+ */
+typedef struct {
+    const char* name;           ///< the name of a statistic item
+    size_t name_length;         ///< the length of \p name
+    const char* value;          ///< the ASCII text information
+    size_t value_length;        ///< the length of \p value
+} yrmcds_cnt_stat;
+
+/**
+ * Data structure to store statistics for the counter extension.
+ */
+typedef struct {
+    yrmcds_cnt_stat* records;   ///< the array of the statistic information
+    size_t count;               ///< the number of statistics
+    size_t capacity;            ///< the maximum number of records that \p records can hold.
+} yrmcds_cnt_statistics;
+
+/**
+ * Data structure of a connection to yrmcds counter server.
+ */
+typedef struct {
+    pthread_mutex_t lock;        ///< guard lock to serialize sends.
+    yrmcds_cnt_statistics stats; /// the result of `stats` command.
+    char* recvbuf;               ///< received data buffer.
+    size_t capacity;             ///< buffer capacity.
+    size_t used;                 ///< used bytes.
+    size_t last_size;            ///< size of the last response.
+    int sock;                    ///< the socket file descriptor.
+    int invalid;                 ///< invalid flag.
+    uint32_t serial;             ///< last issued serial number.
+} yrmcds_cnt;
+
+/**
+ * Server status codes for the counter extension.
+ */
+typedef enum {
+    YRMCDS_CNT_STATUS_OK                     = 0x00,
+    YRMCDS_CNT_STATUS_NOT_FOUND              = 0x01,
+    YRMCDS_CNT_STATUS_INVALID                = 0x04,
+    YRMCDS_CNT_STATUS_RESOURCE_NOT_AVAILABLE = 0x21,
+    YRMCDS_CNT_STATUS_NOT_ACQUIRED           = 0x22,
+    YRMCDS_CNT_STATUS_UNKNOWN_COMMAND        = 0x81,
+    YRMCDS_CNT_STATUS_OUT_OF_MEMORY          = 0x82,
+} yrmcds_cnt_status;
+
+/**
+ * Binary commands for the counter extension.
+ */
+typedef enum {
+    YRMCDS_CNT_CMD_NOOP    = 0x00,
+    YRMCDS_CNT_CMD_GET     = 0x01,
+    YRMCDS_CNT_CMD_ACQUIRE = 0x02,
+    YRMCDS_CNT_CMD_RELEASE = 0x03,
+    YRMCDS_CNT_CMD_STATS   = 0x10,
+    YRMCDS_CNT_CMD_DUMP    = 0x11,
+} yrmcds_cnt_command;
+
+/**
+ * Data structure to store a response packet for the counter extension.
+ */
+typedef struct {
+    yrmcds_cnt_statistics* stats; ///< the result of `stats` command.
+    const char* body;             ///< the pointer to the response body.
+    size_t body_length;           ///< the body length of the response packet.
+    const char* name;             ///< the name of the semaphore (only for Dump command).
+    size_t name_length;           ///< the length of \p name (only for Dump command).
+    uint32_t serial;              ///< serial number of the corresponding request.
+    uint32_t resources;           ///< the number of acquired resources.
+    uint32_t current_consumption; ///< the current consumption of resources.
+    uint32_t max_consumption;     ///< maximum consumption (only for Dump command).
+    uint8_t status;               ///< the response status.
+    uint8_t command;              ///< the request command.
+} yrmcds_cnt_response;
+
+/**
+ * @defgroup yrmcds_cnt_functions  Public functions for the counter extension
+ * @{
+ */
+
+/**
+ * Connecct to a yrmcds server.
+ * @param  c     A pointer to ::yrmcds_cnt.
+ * @param  node  The server name.
+ * @param  port  TCP port number of the server (normally 11215).
+ * @return 0 if connected successfully.  Other values indicate an error.
+ *
+ * This function connects to a yrmcds server and initializes
+ * \p c.  TCP_NODELAY flag will be set for the returned socket.
+ */
+yrmcds_error
+yrmcds_cnt_connect(yrmcds_cnt* c, const char* node, uint16_t port);
+
+/**
+ * Close the connection.
+ * @param  c     A pointer to ::yrmcds_cnt.
+ * @return 0 if \p c is valid.  Other values indicate an error.
+ *
+ * This function closes the connection and frees buffers in \p c.
+ */
+yrmcds_error
+yrmcds_cnt_close(yrmcds_cnt* c);
+
+/**
+ * Shutdown the receiving end of the socket.
+ * @param  c     A pointer to ::yrmcds_cnt.
+ * @return 0 if \p c is valid.  Other values indicate an error.
+ *
+ * This function simply calls \p shutdown system call with \p SHUT_RD .
+ * This can be used to interrupt a thread waiting in ::yrmcds_cnt_recv.
+ *
+ * Note that interrupted ::yrmcds_cnt_recv will return ::YRMCDS_DISCONNECTED.
+ *
+ * \see https://github.com/cybozu/libyrmcds/issues/8
+ */
+yrmcds_error
+yrmcds_cnt_shutdown(yrmcds_cnt* c);
+
+/**
+ * Return the underlying socket in ::yrmcds_cnt.
+ * @param  c     A pointer to ::yrmcds_cnt.
+ * @return       A UNIX file descriptor of a socket.
+ */
+int
+yrmcds_cnt_fileno(yrmcds_cnt* c);
+
+/**
+ * Set timeout seconds for send/recv operations.
+ * @param  c        A pointer to ::yrmcds_cnt.
+ * @param  timeout  Seconds before network operations time out.
+ * @return 0 if arguments are valid.  Other values indicate an error.
+ */
+yrmcds_error
+yrmcds_cnt_set_timeout(yrmcds_cnt* c, int timeout);
+
+/**
+ * Receives a response packet.
+ * @param  c     A pointer to ::yrmcds_cnt.
+ * @param  r     A pointer to ::yrmcds_cnt_response.
+ * @return 0 if succeeded.  Other values indicate an error.
+ *
+ * This function receives a response packet.  If no response is available,
+ * the function will be blocked.  For each \p c, only one thread can use
+ * this function, though command sending functions can be used in parallel.
+ *
+ * The response data stored in \p r keep valid until the next call of this
+ * function or until yrmcds_cnt_close() is called.  \p r can be reused for the
+ * next call of yrmcds_cnt_recv().
+ */
+yrmcds_error
+yrmcds_cnt_recv(yrmcds_cnt* c, yrmcds_cnt_response* r);
+
+/**
+ * Send Noop command.
+ * @param  c       A pointer to ::yrmcds_cnt.
+ * @param  serial  A pointer to \p uint32_t, or \p NULL.
+ * @return 0 if succeeded.  Other values indicate an error.
+ *
+ * This function sends Noop command to the server.
+ * If \p serial is not \p NULL, the serial number of the request will be
+ * stored if the command was sent successfully.
+ */
+yrmcds_error
+yrmcds_cnt_noop(yrmcds_cnt* c, uint32_t* serial);
+
+/**
+ * Send Get command.
+ * @param  c         A pointer to ::yrmcds_cnt.
+ * @param  name      Name.
+ * @param  name_len  Length of \p name.
+ * @param  serial    A pointer to \p uint32_t, or \p NULL.
+ * @return 0 if succeeded.  Other values indicate an error.
+ *
+ * This function sends Get command to the server.
+ * If \p serial is not \p NULL, the serial number of the request will be
+ * stored if the command was sent successfully.
+ */
+yrmcds_error
+yrmcds_cnt_get(yrmcds_cnt* c,
+               const char* name, size_t name_len, uint32_t* serial);
+
+/**
+ * Send Acquire command.
+ * @param  c         A pointer to ::yrmcds_cnt.
+ * @param  name      Name.
+ * @param  name_len  Length of \p name.
+ * @param  resources The number of resources to acquire.
+ * @param  maximum   The maximum number of resources.
+ * @param  serial    A pointer to \p uint32_t, or \p NULL.
+ * @return 0 if succeeded.  Other values indicate an error.
+ *
+ * This function sends Acquire command to the server.
+ * If \p serial is not \p NULL, the serial number of the request will be
+ * stored if the command was sent successfully.
+ */
+yrmcds_error
+yrmcds_cnt_acquire(yrmcds_cnt* c, const char* name, size_t name_len,
+                   uint32_t resources, uint32_t maximum, uint32_t* serial);
+
+/**
+ * Send Release command.
+ * @param  c         A pointer to ::yrmcds_cnt.
+ * @param  name      Name.
+ * @param  name_len  Length of \p name.
+ * @param  resources The number of resources to release.
+ * @param  serial    A pointer to \p uint32_t, or \p NULL.
+ * @return 0 if succeeded.  Other values indicate an error.
+ *
+ * This function sends Release command to the server.
+ * If \p serial is not \p NULL, the serial number of the request will be
+ * stored if the command was sent successfully.
+ */
+yrmcds_error
+yrmcds_cnt_release(yrmcds_cnt* c, const char* name, size_t name_len,
+                   uint32_t resources, uint32_t* serial);
+
+/**
+ * Send Stats command.
+ * @param  c       A pointer to ::yrmcds_cnt.
+ * @param  serial  A pointer to \p uint32_t, or \p NULL.
+ * @return 0 if succeeded.  Other values indicate an error.
+ *
+ * This function sends Stats command to the server.
+ * If \p serial is not \p NULL, the serial number of the request will be
+ * stored if the command was sent successfully.
+ */
+yrmcds_error
+yrmcds_cnt_stats(yrmcds_cnt* c, uint32_t* serial);
+
+/**
+ * Send Dump command.
+ * @param  c       A pointer to ::yrmcds_cnt.
+ * @param  serial  A pointer to \p uint32_t, or \p NULL.
+ * @return 0 if succeeded.  Other values indicate an error.
+ *
+ * This function sends Dump command to the server.
+ * If \p serial is not \p NULL, the serial number of the request will be
+ * stored if the command was sent successfully.
+ */
+yrmcds_error
+yrmcds_cnt_dump(yrmcds_cnt* c, uint32_t* serial);
+
+/**
+ * @}
  */
 
 #ifdef __cplusplus
