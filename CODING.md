@@ -33,8 +33,9 @@ PHPDoc
 ------
 
 `make -f Makefile.phpdoc setup` will instruct you how to setup
-PHP executable for PHPDoc on your local machine.  Follow it, then
-run `make -f Makefile.phpdoc phpdoc` to install PHPDoc.
+PHP executable for PHPDoc on your local machine.
+
+Follow it, then run `make -f Makefile.phpdoc phpdoc` to install PHPDoc.
 
 To generate HTML documents, run `make -f Makefile.phpdoc`.
 
