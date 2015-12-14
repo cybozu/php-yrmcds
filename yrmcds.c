@@ -186,7 +186,7 @@ typedef enum {
 
 static uepc_status
 use_existing_persistent_connection(const char* hash_key, int hash_key_len,
-                                   int* res, yrmcds_error* err,
+                                   zval** res, yrmcds_error* err,
                                    yrmcds_status* status) {
     zend_rsrc_list_entry* existing_conn;
 
@@ -243,7 +243,7 @@ YRMCDS_METHOD(Client, __construct) {
         RETURN_FALSE;
     }
 
-    int res;
+    zval *ret =0;
     if( persist_id_len > 0 ) {
         char* hash_key;
         int hash_key_len = HASH_KEY(hash_key, persist_id);
@@ -296,9 +296,10 @@ YRMCDS_METHOD(Client, __construct) {
                           &c->res, (int)YRMCDS_G(default_timeout)) );
         res = zend_list_insert(c, le_yrmcds);
     }
-    add_property_resource(getThis(), "conn", res);
+    add_property_zval_ex(getThis(), ZEND_STRL("conn"), res);
     if( prefix_len > 0 )
-        add_property_stringl(getThis(), "prefix", prefix, prefix_len, 1);
+        add_property_stringl_ex(getThis(), ZEND_STRL("prefix"),
+                                prefix, prefix_len, 1);
 
     Z_OBJ_HT_P(objptr) = &oh_yrmcds_client;
 }
@@ -349,17 +350,19 @@ YRMCDS_METHOD(Client, recv) {
     CHECK_YRMCDS( yrmcds_recv(&c->res, &r) );
 
     object_init_ex(return_value, ce_yrmcds_response);
-    add_property_long(return_value, "serial", (long)r.serial);
-    add_property_long(return_value, "length", (long)r.length);
-    add_property_long(return_value, "status", (long)r.status);
-    add_property_long(return_value, "command", (long)r.command);
-    add_property_long(return_value, "cas_unique", (long)r.cas_unique);
-    add_property_long(return_value, "flags", (long)r.flags);
+    add_property_long_ex(return_value, ZEND_STRL("serial"), (long)r.serial);
+    add_property_long_ex(return_value, ZEND_STRL("length"), (long)r.length);
+    add_property_long_ex(return_value, ZEND_STRL("status"), (long)r.status);
+    add_property_long_ex(return_value, ZEND_STRL("command"), (long)r.command);
+    add_property_long_ex(return_value, ZEND_STRL("cas_unique"), (long)r.cas_unique);
+    add_property_long_ex(return_value, ZEND_STRL("flags"), (long)r.flags);
     if( r.key_len > 0 )
-        add_property_stringl(return_value, "key", r.key, (uint)r.key_len, 1);
+        add_property_stringl_ex(return_value, ZEND_STRL("key"),
+                                r.key, (uint)r.key_len, 1);
     if( r.data_len > 0 )
-        add_property_stringl(return_value, "data", r.data, (uint)r.data_len, 1);
-    add_property_long(return_value, "value", (long)r.value);
+        add_property_stringl_ex(return_value, ZEND_STRL("data"),
+                                r.data, (uint)r.data_len, 1);
+    add_property_long_ex(return_value, ZEND_STRL("value"), (long)r.value);
 }
 
 // \yrmcds\Client::noop
