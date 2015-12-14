@@ -27,10 +27,10 @@ ZEND_DECLARE_MODULE_GLOBALS(yrmcds)
         int __e = (e);                                                  \
         if( __e != 0 ) {                                                \
             if( __e == YRMCDS_SYSTEM_ERROR ) {                          \
-                zend_throw_exception_ex(ce_yrmcds_error, __e TSRMLS_CC, \
+                zend_throw_exception_ex(ce_yrmcds_error, __e, \
                                         (char*)sys_errlist[errno]);     \
             } else {                                                    \
-                zend_throw_exception_ex(ce_yrmcds_error, __e TSRMLS_CC, \
+                zend_throw_exception_ex(ce_yrmcds_error, __e, \
                                         (char*)yrmcds_strerror(__e));   \
             }                                                           \
             RETURN_FALSE;                                               \
@@ -41,10 +41,10 @@ ZEND_DECLARE_MODULE_GLOBALS(yrmcds)
         int __e = (e);                                                  \
         if( __e != 0 ) {                                                \
             if( __e == YRMCDS_SYSTEM_ERROR ) {                          \
-                zend_throw_exception_ex(ce_yrmcds_error, __e TSRMLS_CC, \
+                zend_throw_exception_ex(ce_yrmcds_error, __e, \
                                         (char*)sys_errlist[errno]);     \
             } else {                                                    \
-                zend_throw_exception_ex(ce_yrmcds_error, __e TSRMLS_CC, \
+                zend_throw_exception_ex(ce_yrmcds_error, __e, \
                                         (char*)yrmcds_strerror(__e));   \
             }                                                           \
         }                                                               \
@@ -60,7 +60,7 @@ ZEND_DECLARE_MODULE_GLOBALS(yrmcds)
             snprintf(__buf, sizeof(__buf), "yrmcds: %s",                \
                      yrmcds_strerror(__e));                             \
         }                                                               \
-        php_log_err(__buf TSRMLS_CC);                                   \
+        php_log_err(__buf);                                             \
     } while( 0 )
 #define DEF_YRMCDS_CONST(name, value)                    \
     REGISTER_NS_LONG_CONSTANT("yrmcds", name, (value),   \
@@ -83,15 +83,15 @@ static zend_class_entry* ce_yrmcds_response;
 
 static void
 on_broken_connection_detected(php_yrmcds_t* conn, yrmcds_error err,
-                              yrmcds_status status TSRMLS_DC) {
+                              yrmcds_status status) {
     if( err != YRMCDS_OK )
         PRINT_YRMCDS_ERROR(err);
     if( status != YRMCDS_STATUS_OK && status != YRMCDS_STATUS_UNKNOWNCOMMAND ) {
         char buf[256];
         snprintf(buf, sizeof(buf), "yrmcds: unexpected response (%d)", status);
-        php_log_err(buf TSRMLS_CC);
+        php_log_err(buf);
     }
-    php_log_err("yrmcds: broken persistent connection" TSRMLS_CC);
+    php_log_err("yrmcds: broken persistent connection");
     if( conn->reference_count == 0 ) {
         // Since `conn` is the last user of this persistent connection,
         // we should clean up resources.
@@ -103,7 +103,7 @@ on_broken_connection_detected(php_yrmcds_t* conn, yrmcds_error err,
 }
 
 /* Resource destructors. */
-static void php_yrmcds_resource_dtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
+static void php_yrmcds_resource_dtor(zend_rsrc_list_entry* rsrc) {
     php_yrmcds_t* c = (php_yrmcds_t*)rsrc->ptr;
 
     c->reference_count -= 1;
@@ -113,21 +113,21 @@ static void php_yrmcds_resource_dtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
         yrmcds_set_timeout(&c->res, (int)YRMCDS_G(default_timeout));
         int e = yrmcds_unlockall(&c->res, 0, &serial);
         if( e != YRMCDS_OK ) {
-            on_broken_connection_detected(c, e, YRMCDS_STATUS_OK TSRMLS_CC);
+            on_broken_connection_detected(c, e, YRMCDS_STATUS_OK);
             return;
         }
         yrmcds_response r;
         do {
             e = yrmcds_recv(&c->res, &r);
             if( e != YRMCDS_OK ) {
-                on_broken_connection_detected(c, e, YRMCDS_STATUS_OK TSRMLS_CC);
+                on_broken_connection_detected(c, e, YRMCDS_STATUS_OK);
                 return;
             }
         } while( r.serial != serial );
         if( r.status != YRMCDS_STATUS_OK &&
             // memcached does not support locking, so
             r.status != YRMCDS_STATUS_UNKNOWNCOMMAND ) {
-            on_broken_connection_detected(c, e, r.status TSRMLS_CC);
+            on_broken_connection_detected(c, e, r.status);
             return;
         }
         return;
@@ -140,7 +140,7 @@ static void php_yrmcds_resource_dtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
     efree(c);
 }
 
-static void php_yrmcds_resource_pdtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
+static void php_yrmcds_resource_pdtor(zend_rsrc_list_entry* rsrc) {
     php_yrmcds_t* c = (php_yrmcds_t*)rsrc->ptr;
     if( ! c->persist_id )
         return;
@@ -148,7 +148,7 @@ static void php_yrmcds_resource_pdtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
     if( c->reference_count != 0 ) {
         char buf[256];
         snprintf(buf, sizeof(buf), "yrmcds: non-zero reference_count on pdtor: %zu", c->reference_count);
-        php_log_err(buf TSRMLS_CC);
+        php_log_err(buf);
     }
 
     yrmcds_close(&c->res);
@@ -157,7 +157,7 @@ static void php_yrmcds_resource_pdtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
 }
 
 static yrmcds_error
-check_persistent_connection(php_yrmcds_t* conn, yrmcds_status* status TSRMLS_DC) {
+check_persistent_connection(php_yrmcds_t* conn, yrmcds_status* status) {
     yrmcds_error e;
     *status = YRMCDS_STATUS_OK;
     e = yrmcds_set_timeout(&conn->res, 1);
@@ -187,7 +187,7 @@ typedef enum {
 static uepc_status
 use_existing_persistent_connection(const char* hash_key, int hash_key_len,
                                    int* res, yrmcds_error* err,
-                                   yrmcds_status* status TSRMLS_DC) {
+                                   yrmcds_status* status) {
     zend_rsrc_list_entry* existing_conn;
 
     if( zend_hash_find(&EG(persistent_list), hash_key, hash_key_len+1,
@@ -197,10 +197,10 @@ use_existing_persistent_connection(const char* hash_key, int hash_key_len,
     php_yrmcds_t* c = existing_conn->ptr;
 
     if( (zend_bool)YRMCDS_G(detect_stale_connection) ) {
-        *err = check_persistent_connection(c, status TSRMLS_CC);
+        *err = check_persistent_connection(c, status);
         if( *err != YRMCDS_OK || *status != YRMCDS_STATUS_OK ) {
             size_t refcount = c->reference_count;
-            on_broken_connection_detected(c, *err, *status TSRMLS_CC);
+            on_broken_connection_detected(c, *err, *status);
             if( refcount != 0 )
                 return UEPC_BROKEN_AND_OCCUPIED;
             return UEPC_BROKEN;
@@ -208,7 +208,7 @@ use_existing_persistent_connection(const char* hash_key, int hash_key_len,
     }
 
     c->reference_count += 1;
-    *res = zend_list_insert(existing_conn->ptr, le_yrmcds TSRMLS_CC);
+    *res = zend_list_insert(existing_conn->ptr, le_yrmcds);
     return UEPC_OK;
 }
 
@@ -235,7 +235,7 @@ YRMCDS_METHOD(Client, __construct) {
         RETURN_FALSE;
     }
 
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|ls!s!",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s|ls!s!",
                               &node, &node_len, &port,
                               &persist_id, &persist_id_len,
                               &prefix, &prefix_len) == FAILURE ) {
@@ -252,14 +252,14 @@ YRMCDS_METHOD(Client, __construct) {
         yrmcds_status status = YRMCDS_STATUS_OK;
         uepc_status s = use_existing_persistent_connection(hash_key, hash_key_len,
                                                            &res, &err,
-                                                           &status TSRMLS_CC);
+                                                           &status);
         if( s == UEPC_BROKEN_AND_OCCUPIED ) {
             // Since the persistent connection is broken and used by other client,
             // we cannot destruct the connection.
             // Therefore, we throw exception and return.
             CHECK_YRMCDS(err);
             zend_throw_exception_ex(ce_yrmcds_error,
-                                    PHP_YRMCDS_UNEXPECTED_RESPONSE TSRMLS_CC,
+                                    PHP_YRMCDS_UNEXPECTED_RESPONSE,
                                     "yrmcds: unexpected response (%d)", status);
             RETURN_FALSE;
         }
@@ -276,7 +276,7 @@ YRMCDS_METHOD(Client, __construct) {
                               &c->res, (size_t)YRMCDS_G(compression_threshold)) );
             CHECK_YRMCDS( yrmcds_set_timeout(
                               &c->res, (int)YRMCDS_G(default_timeout)) );
-            res = zend_list_insert(c, le_yrmcds TSRMLS_CC);
+            res = zend_list_insert(c, le_yrmcds);
             zend_rsrc_list_entry le;
             le.type = le_yrmcds;
             le.ptr = c;
@@ -294,7 +294,7 @@ YRMCDS_METHOD(Client, __construct) {
                           &c->res, (size_t)YRMCDS_G(compression_threshold)) );
         CHECK_YRMCDS( yrmcds_set_timeout(
                           &c->res, (int)YRMCDS_G(default_timeout)) );
-        res = zend_list_insert(c, le_yrmcds TSRMLS_CC);
+        res = zend_list_insert(c, le_yrmcds);
     }
     add_property_resource(getThis(), "conn", res);
     if( prefix_len > 0 )
@@ -311,8 +311,7 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, setTimeout) {
     long timeout;
 
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
-                              &timeout) == FAILURE ) {
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "l", &timeout) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
     }
@@ -392,7 +391,7 @@ YRMCDS_METHOD(Client, get) {
     char* key;
     int key_len;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!|b",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
@@ -437,7 +436,7 @@ YRMCDS_METHOD(Client, getk) {
     char* key;
     int key_len;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!|b",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
@@ -484,7 +483,7 @@ YRMCDS_METHOD(Client, getTouch) {
     int key_len;
     long expire;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!l|b",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!l|b",
                               &key, &key_len, &expire, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
@@ -533,7 +532,7 @@ YRMCDS_METHOD(Client, getkTouch) {
     int key_len;
     long expire;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!l|b",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!l|b",
                               &key, &key_len, &expire, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
@@ -580,7 +579,7 @@ YRMCDS_METHOD(Client, lockGet) {
     char* key;
     int key_len;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!|b",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
@@ -627,7 +626,7 @@ YRMCDS_METHOD(Client, lockGetk) {
     char* key;
     int key_len;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!|b",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
@@ -676,7 +675,7 @@ YRMCDS_METHOD(Client, touch) {
     int key_len;
     long expire;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!l|b",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!l|b",
                               &key, &key_len, &expire, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
@@ -732,7 +731,7 @@ YRMCDS_METHOD(Client, set) {
     long expire = 0;
     long cas = 0;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!s!|lllb",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!s!|lllb",
                               &key, &key_len, &data, &data_len,
                               &flags, &expire, &cas, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -794,7 +793,7 @@ YRMCDS_METHOD(Client, replace) {
     long expire = 0;
     long cas = 0;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!s!|lllb",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!s!|lllb",
                               &key, &key_len, &data, &data_len,
                               &flags, &expire, &cas, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -856,7 +855,7 @@ YRMCDS_METHOD(Client, add) {
     long expire = 0;
     long cas = 0;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!s!|lllb",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!s!|lllb",
                               &key, &key_len, &data, &data_len,
                               &flags, &expire, &cas, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -916,7 +915,7 @@ YRMCDS_METHOD(Client, replaceUnlock) {
     long flags = 0;
     long expire = 0;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!s!|llb",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!s!|llb",
                               &key, &key_len, &data, &data_len,
                               &flags, &expire, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -972,7 +971,7 @@ YRMCDS_METHOD(Client, incr) {
     int key_len;
     long value;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!l|b",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!l|b",
                               &key, &key_len, &value, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
@@ -1025,7 +1024,7 @@ YRMCDS_METHOD(Client, decr) {
     int key_len;
     long value;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!l|b",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!l|b",
                               &key, &key_len, &value, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
@@ -1082,7 +1081,7 @@ YRMCDS_METHOD(Client, incr2) {
     long initial;
     long expire = 0;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!ll|lb",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!ll|lb",
                               &key, &key_len, &value, &initial,
                               &expire, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -1144,7 +1143,7 @@ YRMCDS_METHOD(Client, decr2) {
     long initial;
     long expire = 0;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!ll|lb",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!ll|lb",
                               &key, &key_len, &value, &initial,
                               &expire, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -1203,7 +1202,7 @@ YRMCDS_METHOD(Client, append) {
     char* data;
     int data_len;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!s!|b",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!s!|b",
                               &key, &key_len, &data, &data_len,
                               &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -1257,7 +1256,7 @@ YRMCDS_METHOD(Client, prepend) {
     char* data;
     int data_len;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!s!|b",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!s!|b",
                               &key, &key_len, &data, &data_len,
                               &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -1308,7 +1307,7 @@ YRMCDS_METHOD(Client, delete) {
     char* key;
     int key_len;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!|b",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
@@ -1353,7 +1352,7 @@ YRMCDS_METHOD(Client, lock) {
     char* key;
     int key_len;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!|b",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
@@ -1398,7 +1397,7 @@ YRMCDS_METHOD(Client, unlock) {
     char* key;
     int key_len;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s!|b",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
@@ -1440,8 +1439,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, unlockAll) {
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|b",
-                              &quiet) == FAILURE ) {
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "|b", &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
     }
@@ -1468,7 +1466,7 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, flush) {
     long delay = 0;
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|lb",
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "|lb",
                               &delay, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
@@ -1591,8 +1589,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, quit) {
     zend_bool quiet = 0;
-    if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|b",
-                              &quiet) == FAILURE ) {
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "|b", &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
     }
@@ -1679,19 +1676,19 @@ static PHP_MINIT_FUNCTION(yrmcds)
     oh_yrmcds_client.clone_obj = NULL;
     oh_yrmcds_client.write_property = NULL;
     oh_yrmcds_client.unset_property = NULL;
-    ce_yrmcds_client = zend_register_internal_class(&ce TSRMLS_CC);
+    ce_yrmcds_client = zend_register_internal_class(&ce);
 
     INIT_NS_CLASS_ENTRY(ce, "yrmcds", "Error", NULL);
 #ifdef HAVE_SPL
     ce_yrmcds_error = zend_register_internal_class_ex(
-        &ce, spl_ce_RuntimeException, NULL TSRMLS_CC);
+        &ce, spl_ce_RuntimeException, NULL);
 #else
     ce_yrmcds_error = zend_register_internal_class_ex(
-        &ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
+        &ce, zend_exception_get_default(), NULL);
 #endif
 
     INIT_NS_CLASS_ENTRY(ce, "yrmcds", "Response", NULL);
-    ce_yrmcds_response = zend_register_internal_class(&ce TSRMLS_CC);
+    ce_yrmcds_response = zend_register_internal_class(&ce);
 
     le_yrmcds = zend_register_list_destructors_ex(
         php_yrmcds_resource_dtor, php_yrmcds_resource_pdtor,
