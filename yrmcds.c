@@ -222,12 +222,12 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, __construct) {
     char* node;
-    int node_len;
+    size_t node_len;
     long port = 11211;
     char* persist_id = NULL;
-    int persist_id_len = 0;
+    size_t persist_id_len = 0;
     char* prefix = NULL;
-    int prefix_len = 0;
+    size_t prefix_len = 0;
 
     zval* objptr = getThis();
     if( ! objptr ) {
@@ -389,7 +389,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, get) {
     char* key;
-    int key_len;
+    size_t key_len;
     zend_bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
@@ -434,7 +434,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, getk) {
     char* key;
-    int key_len;
+    size_t key_len;
     zend_bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
@@ -480,7 +480,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, getTouch) {
     char* key;
-    int key_len;
+    size_t key_len;
     long expire;
     zend_bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!l|b",
@@ -529,7 +529,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, getkTouch) {
     char* key;
-    int key_len;
+    size_t key_len;
     long expire;
     zend_bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!l|b",
@@ -577,7 +577,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, lockGet) {
     char* key;
-    int key_len;
+    size_t key_len;
     zend_bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
@@ -624,7 +624,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, lockGetk) {
     char* key;
-    int key_len;
+    size_t key_len;
     zend_bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
@@ -672,7 +672,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, touch) {
     char* key;
-    int key_len;
+    size_t key_len;
     long expire;
     zend_bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!l|b",
@@ -724,9 +724,9 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, set) {
     char* key;
-    int key_len;
+    size_t key_len;
     char* data;
-    int data_len;
+    size_t data_len;
     long flags = 0;
     long expire = 0;
     long cas = 0;
@@ -786,9 +786,9 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, replace) {
     char* key;
-    int key_len;
+    size_t key_len;
     char* data;
-    int data_len;
+    size_t data_len;
     long flags = 0;
     long expire = 0;
     long cas = 0;
@@ -848,9 +848,9 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, add) {
     char* key;
-    int key_len;
+    size_t key_len;
     char* data;
-    int data_len;
+    size_t data_len;
     long flags = 0;
     long expire = 0;
     long cas = 0;
@@ -909,9 +909,9 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, replaceUnlock) {
     char* key;
-    int key_len;
+    size_t key_len;
     char* data;
-    int data_len;
+    size_t data_len;
     long flags = 0;
     long expire = 0;
     zend_bool quiet = 0;
@@ -968,7 +968,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, incr) {
     char* key;
-    int key_len;
+    size_t key_len;
     long value;
     zend_bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!l|b",
@@ -1021,7 +1021,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, decr) {
     char* key;
-    int key_len;
+    size_t key_len;
     long value;
     zend_bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!l|b",
@@ -1076,7 +1076,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, incr2) {
     char* key;
-    int key_len;
+    size_t key_len;
     long value;
     long initial;
     long expire = 0;
@@ -1138,7 +1138,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, decr2) {
     char* key;
-    int key_len;
+    size_t key_len;
     long value;
     long initial;
     long expire = 0;
@@ -1198,9 +1198,9 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, append) {
     char* key;
-    int key_len;
+    size_t key_len;
     char* data;
-    int data_len;
+    size_t data_len;
     zend_bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!s!|b",
                               &key, &key_len, &data, &data_len,
@@ -1252,9 +1252,9 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, prepend) {
     char* key;
-    int key_len;
+    size_t key_len;
     char* data;
-    int data_len;
+    size_t data_len;
     zend_bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!s!|b",
                               &key, &key_len, &data, &data_len,
@@ -1305,7 +1305,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, delete) {
     char* key;
-    int key_len;
+    size_t key_len;
     zend_bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
@@ -1350,7 +1350,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, lock) {
     char* key;
-    int key_len;
+    size_t key_len;
     zend_bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
@@ -1395,7 +1395,7 @@ ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, unlock) {
     char* key;
-    int key_len;
+    size_t key_len;
     zend_bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
