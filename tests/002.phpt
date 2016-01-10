@@ -1,8 +1,7 @@
 --TEST--
 Check for yrmcds binary command constants.
 --SKIPIF--
-<?php if( (! extension_loaded('yrmcds')) and (! dl('yrmcds.so')) )
-          print "skip"; ?>
+<?php if( !extension_loaded('yrmcds') ) print "skip"; ?>
 --FILE--
 <?php
 echo \yrmcds\CMD_LAGKQ;
