@@ -1261,6 +1261,9 @@ PHP_INI_END()
 
 static PHP_GINIT_FUNCTION(yrmcds)
 {
+#if defined(COMPILE_DL_YRMCDS) && defined(ZTS)
+    ZEND_TSRMLS_CACHE_UPDATE();
+#endif
     yrmcds_globals->compression_threshold = 16384;
     yrmcds_globals->default_timeout = 5;
 }
@@ -1405,5 +1408,8 @@ zend_module_entry yrmcds_module_entry = {
 };
 
 #ifdef COMPILE_DL_YRMCDS
+#ifdef ZTS
+ZEND_TSRMLS_CACHE_DEFINE();
+#endif
 ZEND_GET_MODULE(yrmcds)
 #endif
