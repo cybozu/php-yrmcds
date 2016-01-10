@@ -81,6 +81,12 @@ static zend_class_entry* ce_yrmcds_client;
 static zend_class_entry* ce_yrmcds_error;
 static zend_class_entry* ce_yrmcds_response;
 
+typedef struct {
+    const char* persist_id;
+    size_t reference_count;
+    yrmcds res;
+} php_yrmcds_t;
+
 static void
 on_broken_connection_detected(php_yrmcds_t* conn, yrmcds_error err,
                               yrmcds_status status TSRMLS_DC) {

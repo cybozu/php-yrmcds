@@ -14,54 +14,43 @@
 #include "ext/spl/spl_exceptions.h"
 #endif
 
+#include <alloca.h>
 #include <errno.h>
+#include <string.h>
 
 ZEND_DECLARE_MODULE_GLOBALS(yrmcds)
 
-/* Macro functions */
 
-#define HASH_KEY(key, node)                             \
-    spprintf(&(key), 0, PHP_YRMCDS_HASH_KEY, (node))
+/* Macro functions */
 #define CHECK_YRMCDS(e)                                                 \
     do {                                                                \
         int __e = (e);                                                  \
         if( __e != 0 ) {                                                \
             if( __e == YRMCDS_SYSTEM_ERROR ) {                          \
-                zend_throw_exception_ex(ce_yrmcds_error, __e, \
-                                        (char*)sys_errlist[errno]);     \
+                zend_throw_exception_ex(ce_yrmcds_error, __e,           \
+                                        strerror(errno));               \
             } else {                                                    \
-                zend_throw_exception_ex(ce_yrmcds_error, __e, \
+                zend_throw_exception_ex(ce_yrmcds_error, __e,           \
                                         (char*)yrmcds_strerror(__e));   \
             }                                                           \
             RETURN_FALSE;                                               \
         }                                                               \
     } while( 0 )
-#define CHECK_YRMCDS_NORETURN(e)                                        \
-    do {                                                                \
-        int __e = (e);                                                  \
-        if( __e != 0 ) {                                                \
-            if( __e == YRMCDS_SYSTEM_ERROR ) {                          \
-                zend_throw_exception_ex(ce_yrmcds_error, __e, \
-                                        (char*)sys_errlist[errno]);     \
-            } else {                                                    \
-                zend_throw_exception_ex(ce_yrmcds_error, __e, \
-                                        (char*)yrmcds_strerror(__e));   \
-            }                                                           \
-        }                                                               \
-    } while( 0 )
+
 #define PRINT_YRMCDS_ERROR(e) \
     do {                                                                \
         int __e = (e);                                                  \
         char __buf[256];                                                \
         if( __e == YRMCDS_SYSTEM_ERROR ) {                              \
             snprintf(__buf, sizeof(__buf), "yrmcds: %s",                \
-                     sys_errlist[errno]);                               \
+                     strerror(errno));                                  \
         } else {                                                        \
             snprintf(__buf, sizeof(__buf), "yrmcds: %s",                \
                      yrmcds_strerror(__e));                             \
         }                                                               \
         php_log_err(__buf);                                             \
     } while( 0 )
+
 #define DEF_YRMCDS_CONST(name, value)                    \
     REGISTER_NS_LONG_CONSTANT("yrmcds", name, (value),   \
                               CONST_CS|CONST_PERSISTENT)
@@ -72,10 +61,69 @@ ZEND_DECLARE_MODULE_GLOBALS(yrmcds)
     PHP_ME(cn, mn, AI(cn, mn), (flags))
 
 
-/* True global resources - no need for thread safety here */
-static int le_yrmcds;
+/* Connection resource */
+typedef struct {
+    char* pkey;
+    size_t pkey_len;
+    size_t reference_count;
+    yrmcds res;
+} php_yrmcds_t;
+
+static void destruct_conn(php_yrmcds_t* c);
+
+/* Custom object for yrmcds Client */
+typedef struct yrmcds_client_object {
+    php_yrmcds_t* conn;
+    zend_string* prefix;
+    zend_object std;
+} yrmcds_client_object;
 
 static zend_object_handlers oh_yrmcds_client;
+
+static inline
+yrmcds_client_object* fetch_yrmcds_client_object(zend_object *obj) {
+    return (yrmcds_client_object*)((char*)obj - XtOffsetOf(yrmcds_client_object, std));
+}
+
+#define YRMCDS_CLIENT_OBJECT_P(zv) fetch_yrmcds_client_object(Z_OBJ_P((zv)))
+#define YRMCDS_CLIENT_EXPLODE(zv)                               \
+    yrmcds_client_object* obj = YRMCDS_CLIENT_OBJECT_P(zv);     \
+    if( obj->prefix ) {                                         \
+        size_t full_key_len = obj->prefix->len + key_len;       \
+        char* full_key = alloca(full_key_len);                  \
+        memcpy(full_key, obj->prefix->val, obj->prefix->len);   \
+        memcpy(full_key + obj->prefix->len, key, key_len);      \
+        key_len = full_key_len;                                 \
+        key = full_key;                                         \
+    }
+
+static zend_object* yrmcds_client_new(zend_class_entry *ce) {
+    yrmcds_client_object* o;
+
+    o = ecalloc(1, sizeof(yrmcds_client_object) + zend_object_properties_size(ce));
+    zend_object_std_init(&o->std, ce);  // upcall the default
+    object_properties_init(&o->std, ce);
+    o->std.handlers = &oh_yrmcds_client;
+
+    return &o->std;
+}
+
+static void yrmcds_client_delete(zend_object *std) {
+    yrmcds_client_object* o = fetch_yrmcds_client_object(std);
+    if( o->conn ) {
+        destruct_conn(o->conn);
+        o->conn = NULL;
+    }
+    if( o->prefix ) {
+        zend_string_release(o->prefix);
+        o->prefix = NULL;
+    }
+    zend_object_std_dtor(std);  // upcall the default
+}
+
+
+/* True global resources - no need for thread safety here */
+static int le_yrmcds;
 
 static zend_class_entry* ce_yrmcds_client;
 static zend_class_entry* ce_yrmcds_error;
@@ -95,20 +143,15 @@ on_broken_connection_detected(php_yrmcds_t* conn, yrmcds_error err,
     if( conn->reference_count == 0 ) {
         // Since `conn` is the last user of this persistent connection,
         // we should clean up resources.
-        char* hash_key;
-        int hash_key_len = HASH_KEY(hash_key, conn->persist_id);
-        zend_hash_del(&EG(persistent_list), hash_key, hash_key_len + 1);
-        efree(hash_key);
+        zend_hash_str_del(&EG(persistent_list), conn->pkey, conn->pkey_len);
     }
 }
 
 /* Resource destructors. */
-static void php_yrmcds_resource_dtor(zend_rsrc_list_entry* rsrc) {
-    php_yrmcds_t* c = (php_yrmcds_t*)rsrc->ptr;
-
+static void destruct_conn(php_yrmcds_t* c) {
     c->reference_count -= 1;
 
-    if( c->persist_id ) {
+    if( c->pkey ) {
         uint32_t serial;
         yrmcds_set_timeout(&c->res, (int)YRMCDS_G(default_timeout));
         int e = yrmcds_unlockall(&c->res, 0, &serial);
@@ -140,11 +183,10 @@ static void php_yrmcds_resource_dtor(zend_rsrc_list_entry* rsrc) {
     efree(c);
 }
 
-static void php_yrmcds_resource_pdtor(zend_rsrc_list_entry* rsrc) {
-    php_yrmcds_t* c = (php_yrmcds_t*)rsrc->ptr;
-    if( ! c->persist_id )
+static ZEND_RSRC_DTOR_FUNC(php_yrmcds_resource_pdtor) {
+    if( res->ptr == NULL )
         return;
-
+    php_yrmcds_t* c = (php_yrmcds_t*)res->ptr;
     if( c->reference_count != 0 ) {
         char buf[256];
         snprintf(buf, sizeof(buf), "yrmcds: non-zero reference_count on pdtor: %zu", c->reference_count);
@@ -152,8 +194,9 @@ static void php_yrmcds_resource_pdtor(zend_rsrc_list_entry* rsrc) {
     }
 
     yrmcds_close(&c->res);
-    pefree((void*)c->persist_id, 1);
+    pefree((void*)c->pkey, 1);
     pefree(c, 1);
+    res->ptr = NULL;
 }
 
 static yrmcds_error
@@ -186,29 +229,25 @@ typedef enum {
 
 static uepc_status
 use_existing_persistent_connection(const char* hash_key, int hash_key_len,
-                                   zval** res, yrmcds_error* err,
+                                   php_yrmcds_t** res, yrmcds_error* err,
                                    yrmcds_status* status) {
-    zend_rsrc_list_entry* existing_conn;
-
-    if( zend_hash_find(&EG(persistent_list), hash_key, hash_key_len+1,
-                       (void**)&existing_conn) != SUCCESS )
+    zend_resource* le;
+    if( (le = zend_hash_str_find_ptr(&EG(persistent_list), hash_key, hash_key_len)) == NULL )
+        return UEPC_NOT_FOUND;
+    if( le->type != le_yrmcds )
         return UEPC_NOT_FOUND;
 
-    php_yrmcds_t* c = existing_conn->ptr;
-
+    php_yrmcds_t* c = le->ptr;
     if( (zend_bool)YRMCDS_G(detect_stale_connection) ) {
         *err = check_persistent_connection(c, status);
         if( *err != YRMCDS_OK || *status != YRMCDS_STATUS_OK ) {
             size_t refcount = c->reference_count;
             on_broken_connection_detected(c, *err, *status);
-            if( refcount != 0 )
-                return UEPC_BROKEN_AND_OCCUPIED;
-            return UEPC_BROKEN;
+            return refcount == 0 ? UEPC_BROKEN : UEPC_BROKEN_AND_OCCUPIED;
         }
     }
-
     c->reference_count += 1;
-    *res = zend_list_insert(existing_conn->ptr, le_yrmcds);
+    *res = c;
     return UEPC_OK;
 }
 
@@ -243,16 +282,17 @@ YRMCDS_METHOD(Client, __construct) {
         RETURN_FALSE;
     }
 
-    zval *ret =0;
+    yrmcds_client_object* obj = YRMCDS_CLIENT_OBJECT_P(objptr);
     if( persist_id_len > 0 ) {
-        char* hash_key;
-        int hash_key_len = HASH_KEY(hash_key, persist_id);
+        size_t hash_key_len = 7 + persist_id_len;
+        char* hash_key = alloca(hash_key_len);
+        memcpy(hash_key, "yrmcds:", 7);
+        memcpy(hash_key+7, persist_id, persist_id_len);
 
         yrmcds_error err = YRMCDS_OK;
         yrmcds_status status = YRMCDS_STATUS_OK;
-        uepc_status s = use_existing_persistent_connection(hash_key, hash_key_len,
-                                                           &res, &err,
-                                                           &status);
+        uepc_status s = use_existing_persistent_connection(
+            hash_key, hash_key_len, &obj->conn, &err, &status);
         if( s == UEPC_BROKEN_AND_OCCUPIED ) {
             // Since the persistent connection is broken and used by other client,
             // we cannot destruct the connection.
@@ -269,39 +309,39 @@ YRMCDS_METHOD(Client, __construct) {
             // no one use it.
             // Therefore, we create new persistent connection with the given ID.
             php_yrmcds_t* c = pemalloc(sizeof(php_yrmcds_t), 1);
-            c->persist_id = pestrndup(persist_id, persist_id_len, 1);
+            c->pkey = pemalloc(hash_key_len, 1);
+            c->pkey_len = hash_key_len;
+            memcpy(c->pkey, hash_key, hash_key_len);
             c->reference_count = 1;
             CHECK_YRMCDS( yrmcds_connect(&c->res, node, (uint16_t)port) );
             CHECK_YRMCDS( yrmcds_set_compression(
                               &c->res, (size_t)YRMCDS_G(compression_threshold)) );
             CHECK_YRMCDS( yrmcds_set_timeout(
                               &c->res, (int)YRMCDS_G(default_timeout)) );
-            res = zend_list_insert(c, le_yrmcds);
-            zend_rsrc_list_entry le;
+            obj->conn = c;
+            zend_resource le;
             le.type = le_yrmcds;
             le.ptr = c;
-            zend_hash_update(&EG(persistent_list), hash_key, hash_key_len+1,
-                             (void*)&le, sizeof(le), NULL);
+            GC_REFCOUNT(&le) = 1;
+            zend_hash_str_update_mem(&EG(persistent_list),
+                                     hash_key, hash_key_len, &le, sizeof(le));
+            // There is no need to free the return value of the above function
+            // as plist_entry_destructor defined in Zend/zend_list.c does
+            // it automatically.
         }
         // If s == UEPC_OK, we can use the returned presistent connection.
-        efree(hash_key);
     } else {
-        php_yrmcds_t* c = emalloc(sizeof(php_yrmcds_t));
-        c->persist_id = NULL;
+        php_yrmcds_t* c = ecalloc(1, sizeof(php_yrmcds_t));
         c->reference_count = 1;
         CHECK_YRMCDS( yrmcds_connect(&c->res, node, (uint16_t)port) );
         CHECK_YRMCDS( yrmcds_set_compression(
                           &c->res, (size_t)YRMCDS_G(compression_threshold)) );
         CHECK_YRMCDS( yrmcds_set_timeout(
                           &c->res, (int)YRMCDS_G(default_timeout)) );
-        res = zend_list_insert(c, le_yrmcds);
+        obj->conn = c;
     }
-    add_property_zval_ex(getThis(), ZEND_STRL("conn"), res);
     if( prefix_len > 0 )
-        add_property_stringl_ex(getThis(), ZEND_STRL("prefix"),
-                                prefix, prefix_len, 1);
-
-    Z_OBJ_HT_P(objptr) = &oh_yrmcds_client;
+        obj->prefix = zend_string_init(prefix, prefix_len, 0);
 }
 
 // \yrmcds\Client::setTimeout
@@ -320,15 +360,8 @@ YRMCDS_METHOD(Client, setTimeout) {
     if( itimeout < 0 )
         itimeout = 0;
 
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
-    CHECK_YRMCDS( yrmcds_set_timeout(&c->res, itimeout) );
+    yrmcds_client_object* obj = YRMCDS_CLIENT_OBJECT_P(getThis());
+    CHECK_YRMCDS( yrmcds_set_timeout(&obj->conn->res, itimeout) );
     RETURN_TRUE;
 }
 
@@ -337,32 +370,28 @@ ZEND_BEGIN_ARG_INFO_EX(AI(Client, recv), 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, recv) {
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+    yrmcds_client_object* obj = YRMCDS_CLIENT_OBJECT_P(getThis());
 
     yrmcds_response r;
-    CHECK_YRMCDS( yrmcds_recv(&c->res, &r) );
+    CHECK_YRMCDS( yrmcds_recv(&obj->conn->res, &r) );
 
     object_init_ex(return_value, ce_yrmcds_response);
-    add_property_long_ex(return_value, ZEND_STRL("serial"), (long)r.serial);
-    add_property_long_ex(return_value, ZEND_STRL("length"), (long)r.length);
-    add_property_long_ex(return_value, ZEND_STRL("status"), (long)r.status);
-    add_property_long_ex(return_value, ZEND_STRL("command"), (long)r.command);
-    add_property_long_ex(return_value, ZEND_STRL("cas_unique"), (long)r.cas_unique);
-    add_property_long_ex(return_value, ZEND_STRL("flags"), (long)r.flags);
+#define UPDATE_PROP_LONG(name, value) \
+    zend_update_property_long(ce_yrmcds_response, return_value, ZEND_STRL(name), (long)value)
+    UPDATE_PROP_LONG("serial", r.serial);
+    UPDATE_PROP_LONG("length", r.length);
+    UPDATE_PROP_LONG("status", r.status);
+    UPDATE_PROP_LONG("command", r.command);
+    UPDATE_PROP_LONG("cas_unique", r.cas_unique);
+    UPDATE_PROP_LONG("flags", r.flags);
     if( r.key_len > 0 )
-        add_property_stringl_ex(return_value, ZEND_STRL("key"),
-                                r.key, (uint)r.key_len, 1);
+        zend_update_property_stringl(ce_yrmcds_response, return_value,
+                                     ZEND_STRL("key"), r.key, r.key_len);
     if( r.data_len > 0 )
-        add_property_stringl_ex(return_value, ZEND_STRL("data"),
-                                r.data, (uint)r.data_len, 1);
-    add_property_long_ex(return_value, ZEND_STRL("value"), (long)r.value);
+        zend_update_property_stringl(ce_yrmcds_response, return_value,
+                                     ZEND_STRL("data"), r.data, r.data_len);
+    UPDATE_PROP_LONG("value", r.value);
+#undef UPDATE_PROP_LONG
 }
 
 // \yrmcds\Client::noop
@@ -370,17 +399,10 @@ ZEND_BEGIN_ARG_INFO_EX(AI(Client, noop), 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, noop) {
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+    yrmcds_client_object* obj = YRMCDS_CLIENT_OBJECT_P(getThis());
 
     uint32_t serial;
-    CHECK_YRMCDS( yrmcds_noop(&c->res, &serial) );
+    CHECK_YRMCDS( yrmcds_noop(&obj->conn->res, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -403,29 +425,11 @@ YRMCDS_METHOD(Client, get) {
         php_error(E_ERROR, "Invalid key");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_get(&c->res, key, key_len, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN( yrmcds_get(&c->res, full_key, full_key_len,
-                                          quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_get(&obj->conn->res, key, key_len, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -448,29 +452,11 @@ YRMCDS_METHOD(Client, getk) {
         php_error(E_ERROR, "Invalid key");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_getk(&c->res, key, key_len, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN( yrmcds_getk(&c->res, full_key, full_key_len,
-                                           quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_getk(&obj->conn->res, key, key_len, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -495,31 +481,12 @@ YRMCDS_METHOD(Client, getTouch) {
         php_error(E_ERROR, "Invalid key");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_get_touch(&c->res, key, key_len,
-                                       (uint32_t)expire, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN( yrmcds_get_touch(
-                                   &c->res, full_key, full_key_len,
+    CHECK_YRMCDS( yrmcds_get_touch(&obj->conn->res, key, key_len,
                                    (uint32_t)expire, quiet, &serial) );
-        efree(full_key);
-    }
     RETURN_LONG((long)serial);
 }
 
@@ -544,31 +511,12 @@ YRMCDS_METHOD(Client, getkTouch) {
         php_error(E_ERROR, "Invalid key");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_getk_touch(&c->res, key, key_len,
-                                        (uint32_t)expire, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN( yrmcds_getk_touch(
-                                   &c->res, full_key, full_key_len,
-                                   (uint32_t)expire, quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_getk_touch(&obj->conn->res, key, key_len,
+                                    (uint32_t)expire, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -591,31 +539,12 @@ YRMCDS_METHOD(Client, lockGet) {
         php_error(E_ERROR, "Invalid key");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS(
-            yrmcds_lock_get(&c->res, key, key_len, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN(
-            yrmcds_lock_get(&c->res, full_key, full_key_len,
-                            quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS(
+            yrmcds_lock_get(&obj->conn->res, key, key_len, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -638,31 +567,12 @@ YRMCDS_METHOD(Client, lockGetk) {
         php_error(E_ERROR, "Invalid key");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS(
-            yrmcds_lock_getk(&c->res, key, key_len, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN(
-            yrmcds_lock_getk(&c->res, full_key, full_key_len,
-                             quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS(
+        yrmcds_lock_getk(&obj->conn->res, key, key_len, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -687,31 +597,12 @@ YRMCDS_METHOD(Client, touch) {
         php_error(E_ERROR, "Invalid key");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_touch(&c->res, key, key_len,
-                                   (uint32_t)expire, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN( yrmcds_touch(
-                                   &c->res, full_key, full_key_len,
-                                   (uint32_t)expire, quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_touch(&obj->conn->res, key, key_len,
+                               (uint32_t)expire, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -748,32 +639,13 @@ YRMCDS_METHOD(Client, set) {
         php_error(E_ERROR, "Empty data is not allowed");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_set(&c->res, key, key_len,
-                                 data, data_len, flags, expire,
-                                 cas, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN( yrmcds_set(&c->res, full_key, full_key_len,
-                                          data, data_len, flags, expire,
-                                          cas, quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_set(&obj->conn->res, key, key_len,
+                             data, data_len, flags, expire,
+                             cas, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -810,32 +682,13 @@ YRMCDS_METHOD(Client, replace) {
         php_error(E_ERROR, "Empty data is not allowed");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_replace(&c->res, key, key_len,
-                                     data, data_len, flags, expire,
-                                     cas, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN( yrmcds_replace(&c->res, full_key, full_key_len,
-                                              data, data_len, flags, expire,
-                                              cas, quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_replace(&obj->conn->res, key, key_len,
+                                 data, data_len, flags, expire,
+                                 cas, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -872,32 +725,13 @@ YRMCDS_METHOD(Client, add) {
         php_error(E_ERROR, "Empty data is not allowed");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_add(&c->res, key, key_len,
-                                 data, data_len, flags, expire,
-                                 cas, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN( yrmcds_add(&c->res, full_key, full_key_len,
-                                          data, data_len, flags, expire,
-                                          cas, quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_add(&obj->conn->res, key, key_len,
+                             data, data_len, flags, expire,
+                             cas, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -932,33 +766,13 @@ YRMCDS_METHOD(Client, replaceUnlock) {
         php_error(E_ERROR, "Empty data is not allowed");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_replace_unlock(&c->res, key, key_len,
-                                            data, data_len, flags, expire,
-                                            quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN(
-            yrmcds_replace_unlock(&c->res, full_key, full_key_len,
-                                  data, data_len, flags, expire,
-                                  quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_replace_unlock(&obj->conn->res, key, key_len,
+                                        data, data_len, flags, expire,
+                                        quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -987,31 +801,12 @@ YRMCDS_METHOD(Client, incr) {
         php_error(E_ERROR, "Invalid value");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_incr(&c->res, key, key_len, value,
-                                  quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN(
-            yrmcds_incr(&c->res, full_key, full_key_len, value,
-                        quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_incr(&obj->conn->res, key, key_len, value,
+                              quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1040,31 +835,12 @@ YRMCDS_METHOD(Client, decr) {
         php_error(E_ERROR, "Invalid value");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_decr(&c->res, key, key_len, value,
-                                  quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN(
-            yrmcds_decr(&c->res, full_key, full_key_len, value,
-                        quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_decr(&obj->conn->res, key, key_len, value,
+                              quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1102,31 +878,12 @@ YRMCDS_METHOD(Client, incr2) {
         php_error(E_ERROR, "Invalid initial value");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_incr2(&c->res, key, key_len, value, initial,
-                                   expire, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN(
-            yrmcds_incr2(&c->res, full_key, full_key_len, value, initial,
-                         expire, quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_incr2(&obj->conn->res, key, key_len, value, initial,
+                               expire, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1164,31 +921,12 @@ YRMCDS_METHOD(Client, decr2) {
         php_error(E_ERROR, "Invalid initial value");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_decr2(&c->res, key, key_len, value, initial,
-                                   expire, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN(
-            yrmcds_decr2(&c->res, full_key, full_key_len, value, initial,
-                         expire, quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_decr2(&obj->conn->res, key, key_len, value, initial,
+                               expire, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1219,30 +957,12 @@ YRMCDS_METHOD(Client, append) {
         php_error(E_ERROR, "Empty data is not allowed");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_append(&c->res, key, key_len,
-                                    data, data_len, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN( yrmcds_append(&c->res, full_key, full_key_len,
-                                             data, data_len, quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_append(&obj->conn->res, key, key_len,
+                                data, data_len, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1273,30 +993,12 @@ YRMCDS_METHOD(Client, prepend) {
         php_error(E_ERROR, "Empty data is not allowed");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_prepend(&c->res, key, key_len,
-                                     data, data_len, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN( yrmcds_prepend(&c->res, full_key, full_key_len,
-                                              data, data_len, quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_prepend(&obj->conn->res, key, key_len,
+                                 data, data_len, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1319,29 +1021,11 @@ YRMCDS_METHOD(Client, delete) {
         php_error(E_ERROR, "Invalid key");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_remove(&c->res, key, key_len, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN(
-            yrmcds_remove(&c->res, full_key, full_key_len, quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_remove(&obj->conn->res, key, key_len, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1364,29 +1048,11 @@ YRMCDS_METHOD(Client, lock) {
         php_error(E_ERROR, "Invalid key");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_lock(&c->res, key, key_len, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN(
-            yrmcds_lock(&c->res, full_key, full_key_len, quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_lock(&obj->conn->res, key, key_len, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1409,29 +1075,11 @@ YRMCDS_METHOD(Client, unlock) {
         php_error(E_ERROR, "Invalid key");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    YRMCDS_CLIENT_EXPLODE(getThis());
 
     uint32_t serial;
-    zval** zv_prefix_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "prefix", sizeof("prefix"),
-                       (void**)&zv_prefix_p) == FAILURE ) {
-        CHECK_YRMCDS( yrmcds_unlock(&c->res, key, key_len, quiet, &serial) );
-    } else {
-        size_t full_key_len = Z_STRLEN_PP(zv_prefix_p) + key_len;
-        char* full_key = emalloc(full_key_len);
-        memcpy(full_key, Z_STRVAL_PP(zv_prefix_p), Z_STRLEN_PP(zv_prefix_p));
-        memcpy(full_key + Z_STRLEN_PP(zv_prefix_p), key, key_len);
-        CHECK_YRMCDS_NORETURN(
-            yrmcds_unlock(&c->res, full_key, full_key_len, quiet, &serial) );
-        efree(full_key);
-    }
+    CHECK_YRMCDS( yrmcds_unlock(&obj->conn->res, key, key_len, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1446,17 +1094,11 @@ YRMCDS_METHOD(Client, unlockAll) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    yrmcds_client_object* obj = YRMCDS_CLIENT_OBJECT_P(getThis());
 
     uint32_t serial;
-    CHECK_YRMCDS( yrmcds_unlockall(&c->res, quiet, &serial) );
+    CHECK_YRMCDS( yrmcds_unlockall(&obj->conn->res, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1476,17 +1118,11 @@ YRMCDS_METHOD(Client, flush) {
     }
     if( delay < 0 )
         delay = 0;
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    yrmcds_client_object* obj = YRMCDS_CLIENT_OBJECT_P(getThis());
 
     uint32_t serial;
-    CHECK_YRMCDS( yrmcds_flush(&c->res, delay, quiet, &serial) );
+    CHECK_YRMCDS( yrmcds_flush(&obj->conn->res, delay, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1495,17 +1131,10 @@ ZEND_BEGIN_ARG_INFO_EX(AI(Client, statGeneral), 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, statGeneral) {
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+    yrmcds_client_object* obj = YRMCDS_CLIENT_OBJECT_P(getThis());
 
     uint32_t serial;
-    CHECK_YRMCDS( yrmcds_stat_general(&c->res, &serial) );
+    CHECK_YRMCDS( yrmcds_stat_general(&obj->conn->res, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1514,17 +1143,10 @@ ZEND_BEGIN_ARG_INFO_EX(AI(Client, statSettings), 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, statSettings) {
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+    yrmcds_client_object* obj = YRMCDS_CLIENT_OBJECT_P(getThis());
 
     uint32_t serial;
-    CHECK_YRMCDS( yrmcds_stat_settings(&c->res, &serial) );
+    CHECK_YRMCDS( yrmcds_stat_settings(&obj->conn->res, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1533,17 +1155,10 @@ ZEND_BEGIN_ARG_INFO_EX(AI(Client, statItems), 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, statItems) {
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+    yrmcds_client_object* obj = YRMCDS_CLIENT_OBJECT_P(getThis());
 
     uint32_t serial;
-    CHECK_YRMCDS( yrmcds_stat_items(&c->res, &serial) );
+    CHECK_YRMCDS( yrmcds_stat_items(&obj->conn->res, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1552,17 +1167,10 @@ ZEND_BEGIN_ARG_INFO_EX(AI(Client, statSizes), 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, statSizes) {
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+    yrmcds_client_object* obj = YRMCDS_CLIENT_OBJECT_P(getThis());
 
     uint32_t serial;
-    CHECK_YRMCDS( yrmcds_stat_sizes(&c->res, &serial) );
+    CHECK_YRMCDS( yrmcds_stat_sizes(&obj->conn->res, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1571,17 +1179,10 @@ ZEND_BEGIN_ARG_INFO_EX(AI(Client, version), 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, version) {
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+    yrmcds_client_object* obj = YRMCDS_CLIENT_OBJECT_P(getThis());
 
     uint32_t serial;
-    CHECK_YRMCDS( yrmcds_version(&c->res, &serial) );
+    CHECK_YRMCDS( yrmcds_version(&obj->conn->res, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1596,17 +1197,11 @@ YRMCDS_METHOD(Client, quit) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
     }
-    zval** zv_conn_p;
-    if( zend_hash_find(Z_OBJPROP_P(getThis()), "conn", sizeof("conn"),
-                       (void**)&zv_conn_p) == FAILURE ) {
-        php_error(E_ERROR, "Property \"conn\" was lost!");
-        RETURN_FALSE;
-    }
-    php_yrmcds_t* c;
-    ZEND_FETCH_RESOURCE(c, php_yrmcds_t*, zv_conn_p, -1, "yrmcds", le_yrmcds);
+
+    yrmcds_client_object* obj = YRMCDS_CLIENT_OBJECT_P(getThis());
 
     uint32_t serial;
-    CHECK_YRMCDS( yrmcds_quit(&c->res, quiet, &serial) );
+    CHECK_YRMCDS( yrmcds_quit(&obj->conn->res, quiet, &serial) );
     RETURN_LONG((long)serial);
 }
 
@@ -1674,28 +1269,46 @@ static PHP_MINIT_FUNCTION(yrmcds)
 {
     zend_class_entry ce;
     INIT_NS_CLASS_ENTRY(ce, "yrmcds", "Client", php_yrmcds_client_functions);
+    ce_yrmcds_client = zend_register_internal_class(&ce);
+    ce_yrmcds_client->create_object = yrmcds_client_new;
     memcpy(&oh_yrmcds_client, zend_get_std_object_handlers(),
            sizeof(zend_object_handlers));
+    oh_yrmcds_client.offset = XtOffsetOf(yrmcds_client_object, std);
+    oh_yrmcds_client.free_obj = yrmcds_client_delete;
     oh_yrmcds_client.clone_obj = NULL;
-    oh_yrmcds_client.write_property = NULL;
-    oh_yrmcds_client.unset_property = NULL;
-    ce_yrmcds_client = zend_register_internal_class(&ce);
 
     INIT_NS_CLASS_ENTRY(ce, "yrmcds", "Error", NULL);
 #ifdef HAVE_SPL
     ce_yrmcds_error = zend_register_internal_class_ex(
-        &ce, spl_ce_RuntimeException, NULL);
+        &ce, spl_ce_RuntimeException);
 #else
     ce_yrmcds_error = zend_register_internal_class_ex(
-        &ce, zend_exception_get_default(), NULL);
+        &ce, zend_exception_get_default());
 #endif
 
     INIT_NS_CLASS_ENTRY(ce, "yrmcds", "Response", NULL);
     ce_yrmcds_response = zend_register_internal_class(&ce);
+    zend_declare_property_long(ce_yrmcds_response, ZEND_STRL("status"),
+                               0, ZEND_ACC_PUBLIC);
+    zend_declare_property_long(ce_yrmcds_response, ZEND_STRL("serial"),
+                               0, ZEND_ACC_PUBLIC);
+    zend_declare_property_long(ce_yrmcds_response, ZEND_STRL("length"),
+                               0, ZEND_ACC_PUBLIC);
+    zend_declare_property_long(ce_yrmcds_response, ZEND_STRL("command"),
+                               0, ZEND_ACC_PUBLIC);
+    zend_declare_property_long(ce_yrmcds_response, ZEND_STRL("cas_unique"),
+                               0, ZEND_ACC_PUBLIC);
+    zend_declare_property_long(ce_yrmcds_response, ZEND_STRL("flags"),
+                               0, ZEND_ACC_PUBLIC);
+    zend_declare_property_null(ce_yrmcds_response, ZEND_STRL("key"),
+                               ZEND_ACC_PUBLIC);
+    zend_declare_property_null(ce_yrmcds_response, ZEND_STRL("data"),
+                               ZEND_ACC_PUBLIC);
+    zend_declare_property_null(ce_yrmcds_response, ZEND_STRL("value"),
+                               ZEND_ACC_PUBLIC);
 
     le_yrmcds = zend_register_list_destructors_ex(
-        php_yrmcds_resource_dtor, php_yrmcds_resource_pdtor,
-        "yrmcds", module_number);
+        NULL, php_yrmcds_resource_pdtor, "yrmcds", module_number);
 
 #define DEF_YRMCDS_STATUS(st) DEF_YRMCDS_CONST("STATUS_" #st, YRMCDS_STATUS_##st)
     DEF_YRMCDS_STATUS(OK);
