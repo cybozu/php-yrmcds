@@ -247,6 +247,8 @@ use_existing_persistent_connection(const char* hash_key, int hash_key_len,
         }
     }
     c->reference_count += 1;
+    if( c->reference_count > 1 )
+        php_log_err("yrmcds: clients share the same persistent connection.");
     *res = c;
     return UEPC_OK;
 }
