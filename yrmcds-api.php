@@ -721,17 +721,15 @@ class Error extends \RuntimeException {}
  *
  * This class represents a command response from the server.
  *
- * All instances have these properties:
+ * These properties are always set:
  *
  * * $status
  * * $serial
  * * $length
  * * $command
  *
- * Other properties may or may not be available.
- * Test their availabilities by `property_exists()`.
- *
- * @see http://www.php.net/manual/en/function.property-exists.php
+ * Other properties may or may not be set depending on the
+ * command and status.
  */
 class Response {
     /**
