@@ -25,15 +25,6 @@ extern zend_module_entry yrmcds_module_entry;
 #define PHP_YRMCDS_VERSION "1.0.4"
 #define PHP_YRMCDS_HASH_KEY "yrmcds:%s"
 
-typedef struct {
-    const char* persist_id;
-    size_t reference_count;
-    yrmcds res;
-} php_yrmcds_t;
-
-#define PHP_YRMCDS_FETCH(yrmcdsp,zp)                                    \
-    ZEND_FETCH_RESOURCE((yrmcdsp), yrmcds*, &(zp), -1, "yrmcds", le_yrmcds)
-
 ZEND_BEGIN_MODULE_GLOBALS(yrmcds)
     long compression_threshold;
     long default_timeout;
