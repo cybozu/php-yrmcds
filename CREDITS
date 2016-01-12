@@ -1,5 +1,5 @@
 PHP extension for memcached / yrmcds.
-Copyright (C) 2013 Cybozu.  Yamamoto, Hirotaka.
+Copyright (C) 2013-2016 Cybozu.  Yamamoto, Hirotaka.
 
 This program contains LZ4 data compression library developed by:
 Copyright (C) 2011-2013, Yann Collet.

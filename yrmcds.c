@@ -1,4 +1,4 @@
-// (C) 2013 Cybozu.
+// (C) 2013-2016 Cybozu.
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
