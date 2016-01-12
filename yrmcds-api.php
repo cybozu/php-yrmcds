@@ -8,8 +8,8 @@
  * This extension wraps libyrmcds, a memcached/yrmcds client library.
  *
  * @author Yamamoto, Hirotaka
- * @version 1.0.4
- * @copyright (C) 2013 Cybozu.
+ * @version 1.1.0
+ * @copyright (C) 2013-2016 Cybozu.
  * @license 2-clause BSD
  * @package extension
  * @link http://cybozu.github.io/libyrmcds/
