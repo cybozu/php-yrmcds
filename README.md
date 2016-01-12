@@ -1,5 +1,5 @@
-memcached / yrmcds extension for PHP5
-=====================================
+memcached / yrmcds extension for PHP
+====================================
 
 This PHP extension provides an object-oriented interface of [libyrmcds][],
 a full-featured [memcached][] / [yrmcds][] client library.
@@ -26,7 +26,7 @@ server-side locking is also available.
 Requirements
 ------------
 
-* PHP 5.4 or better.
+* PHP 5.4+ or PHP7.
 * Linux or MacOS X.
 
 Install

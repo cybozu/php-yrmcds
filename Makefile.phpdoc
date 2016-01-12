@@ -10,7 +10,7 @@ html:
 	$(PHPDOC)
 
 setup:
-	sudo apt-get install libxslt1-dev libicu-dev graphviz
+	sudo apt-get -y install libxslt1-dev libicu-dev graphviz zlib1g-dev
 	@echo 'Install PHP with the following configurations:'
 	@echo ./configure --enable-intl --enable-libxml --with-zlib --with-xsl --prefix=/usr/local/php --with-config-file-path=/usr/local/php/etc
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <phpdoc>
-    <title>yrmcds for PHP5</title>
+    <title>memcached / yrmcds client for PHP</title>
     <parser>
         <default-package-name>yrmcds</default-package-name>
         <target>output</target>
@@ -16,7 +16,7 @@
         </paths>
     </logging>
     <transformations>
-        <template name="responsive" />
+        <template name="clean" />
     </transformations>
     <files>
         <file>yrmcds-api.php</file>
