@@ -22,7 +22,7 @@ extern zend_module_entry yrmcds_module_entry;
 #include "TSRM.h"
 #endif
 
-#define PHP_YRMCDS_VERSION "1.1.0"
+#define PHP_YRMCDS_VERSION "1.1.1"
 #define PHP_YRMCDS_HASH_KEY "yrmcds:%s"
 
 ZEND_BEGIN_MODULE_GLOBALS(yrmcds)
