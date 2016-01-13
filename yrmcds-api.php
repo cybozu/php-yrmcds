@@ -293,6 +293,11 @@ const CMD_RAU = 0x4a;
  */
 const CMD_RAUQ = 0x4b;
 
+/**
+ * Binary command 'Keys'.
+ */
+const CMD_KEYS = 0x50;
+
 
 /**
  * Memcached client class.
@@ -650,7 +655,7 @@ class Client {
      * Send `Stat` to retrieve general statictics of the server.
      *
      * The server will return a series of response packets.
-     * The series ends with a response data without `key` property.
+     * The series ends with a response data with null `key` property.
      *
      * @return int  The serial number of the request.
      */
@@ -660,7 +665,7 @@ class Client {
      * Send `Stat` to retrieve settings of the server.
      *
      * The server will return a series of response packets.
-     * The series ends with a response data without `key` property.
+     * The series ends with a response data with null `key` property.
      *
      * @return int  The serial number of the request.
      */
@@ -670,7 +675,7 @@ class Client {
      * Send `Stat` to retrieve item statistics of the server.
      *
      * The server will return a series of response packets.
-     * The series ends with a response data without `key` property.
+     * The series ends with a response data with null `key` property.
      *
      * @return int  The serial number of the request.
      */
@@ -680,11 +685,26 @@ class Client {
      * Send `Stat` to retrieve size statistics of the server.
      *
      * The server will return a series of response packets.
-     * The series ends with a response data without `key` property.
+     * The series ends with a response data with null `key` property.
      *
      * @return int  The serial number of the request.
      */
     public function statSizes() {}
+
+    /**
+     * Send `Keys` to retrieve matching keys.
+     *
+     * *The keys extension is only available for yrmcds server!*.
+     * memcached does not support the extension so far.
+     *
+     * The server will return a series of response packets.
+     * The series ends with a response data with null `key` property.
+     *
+     * @see https://github.com/cybozu/yrmcds/blob/master/docs/keys.md
+     * @param string  $prefix  If not NULL, only keys with the given prefix will be fetched.
+     * @return int  The serial number of the request.
+     */
+    public function keys($prefix = NULL) {}
 
     /**
      * Send `Version` to retrieve the server version.

@@ -1176,6 +1176,29 @@ YRMCDS_METHOD(Client, statSizes) {
     RETURN_LONG((long)serial);
 }
 
+// \yrmcds\Client::keys
+ZEND_BEGIN_ARG_INFO_EX(AI(Client, keys), 0, ZEND_RETURN_VALUE, 0)
+    ZEND_ARG_INFO(0, "prefix")
+ZEND_END_ARG_INFO()
+
+YRMCDS_METHOD(Client, keys) {
+    char* prefix = NULL;
+    size_t prefix_len = 0;
+    if( zend_parse_parameters(ZEND_NUM_ARGS(), "|s",
+                              &prefix, &prefix_len) == FAILURE ) {
+        php_error(E_ERROR, "Invalid argument");
+        RETURN_FALSE;
+    }
+    if( prefix_len == 0 )
+        prefix = NULL;
+
+    yrmcds_client_object* obj = YRMCDS_CLIENT_OBJECT_P(getThis());
+
+    uint32_t serial;
+    CHECK_YRMCDS( yrmcds_keys(&obj->conn->res, prefix, prefix_len, &serial) );
+    RETURN_LONG((long)serial);
+}
+
 // \yrmcds\Client::version
 ZEND_BEGIN_ARG_INFO_EX(AI(Client, version), 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
@@ -1238,6 +1261,7 @@ static const zend_function_entry php_yrmcds_client_functions[] = {
     YRMCDS_ME(Client, statSettings, ZEND_ACC_PUBLIC)
     YRMCDS_ME(Client, statItems, ZEND_ACC_PUBLIC)
     YRMCDS_ME(Client, statSizes, ZEND_ACC_PUBLIC)
+    YRMCDS_ME(Client, keys, ZEND_ACC_PUBLIC)
     YRMCDS_ME(Client, version, ZEND_ACC_PUBLIC)
     YRMCDS_ME(Client, quit, ZEND_ACC_PUBLIC)
     PHP_FE_END
@@ -1373,6 +1397,7 @@ static PHP_MINIT_FUNCTION(yrmcds)
     DEF_YRMCDS_COMMAND(LAGKQ);
     DEF_YRMCDS_COMMAND(RAU);
     DEF_YRMCDS_COMMAND(RAUQ);
+    DEF_YRMCDS_COMMAND(KEYS);
 
     REGISTER_INI_ENTRIES();
     return SUCCESS;
