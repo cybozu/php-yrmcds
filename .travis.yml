@@ -1,0 +1,27 @@
+dist: trusty
+sudo: required
+language: php
+php:
+  - 5.5
+  - 5.6
+  - 7.0
+  - nightly
+env:
+  - YRMCDS_VERSION=v1.1.6
+  - YRMCDS_VERSION=master
+before_install:
+  - sudo apt-get -qq update
+  - git clone -b ${YRMCDS_VERSION} https://github.com/cybozu/yrmcds
+  - cd yrmcds; make setup && make
+  - cd yrmcds; sudo yrmcdsd &
+install:
+  - phpize
+  - make all
+script:
+  - YRMCDS_SERVER=localhost
+    REPORT_EXIT_STATUS=1 NO_INTERACTION=1
+    TEST_PHP_EXECUTABLE=$(which php) php -n
+    -d open_basedir= -d output_buffering=0 -d memory_limit=-1
+    run-tests.php -n
+    -d extension_dir=modules -d extension=yrmcds.so --show-diff
+    tests
