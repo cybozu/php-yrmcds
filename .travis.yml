@@ -12,8 +12,10 @@ env:
 before_install:
   - sudo apt-get -qq update
   - git clone -b ${YRMCDS_VERSION} https://github.com/cybozu/yrmcds
-  - cd yrmcds; make setup && make
-  - cd yrmcds; sudo yrmcdsd &
+  - cd yrmcds
+  - make setup && make
+  - sudo ./yrmcdsd &
+  - cd ..
 install:
   - phpize
   - make all
