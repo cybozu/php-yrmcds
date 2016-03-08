@@ -18,7 +18,7 @@ before_install:
   - cd ..
 install:
   - phpize
-  - make all
+  - make 
 script:
   - YRMCDS_SERVER=localhost
     REPORT_EXIT_STATUS=1 NO_INTERACTION=1
