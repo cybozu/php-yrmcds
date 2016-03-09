@@ -14,7 +14,7 @@ before_install:
   - git clone -b ${YRMCDS_VERSION} https://github.com/cybozu/yrmcds
   - cd yrmcds
   - make setup && make
-  - sudo service yrmcds stop
+  - sudo service memcached stop
   - sudo ./yrmcdsd &
   - cd ..
 install:
