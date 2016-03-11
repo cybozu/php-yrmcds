@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/cybozu/php-yrmcds.svg?branch=master)](https://travis-ci.org/cybozu/php-yrmcds)
+
 memcached / yrmcds extension for PHP
 ====================================
 
