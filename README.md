@@ -13,6 +13,12 @@ client library for yrmcds.
 Thanks to yrmcds' server-side locking, this extension can provide a
 stable object locking mechanism when combined with [yrmcds][].
 
+License
+--------
+php-yrmcds is licensed under [the BSD 2-clause license][bsd2].
+
+This repository contains [LZ4][] source code which is licensed under [the BSD 2-clause license][bsd2].
+
 Features
 --------
 
@@ -52,3 +58,5 @@ See [USAGE.md](USAGE.md).
 [yrmcds]: http://cybozu.github.io/yrmcds/
 [locking]: https://github.com/cybozu/yrmcds/blob/master/docs/locking.md
 [phpize]: http://www.php.net/manual/en/install.pecl.phpize.php
+[bsd2]: http://opensource.org/licenses/BSD-2-Clause
+[LZ4]: https://github.com/lz4/lz4
