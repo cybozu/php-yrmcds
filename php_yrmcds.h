@@ -39,4 +39,9 @@ ZEND_END_MODULE_GLOBALS(yrmcds)
 
 #define PHP_YRMCDS_UNEXPECTED_RESPONSE 256
 
+/* Backwards compatibility for GC API change in PHP 7.3 */
+#if PHP_VERSION_ID < 70300
+#  define GC_SET_REFCOUNT(p, rc)  GC_REFCOUNT(p) = rc
+#endif
+
 #endif  /* PHP_YRMCDS_H */
