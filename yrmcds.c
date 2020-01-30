@@ -324,7 +324,7 @@ YRMCDS_METHOD(Client, __construct) {
             zend_resource le;
             le.type = le_yrmcds;
             le.ptr = c;
-            GC_REFCOUNT(&le) = 1;
+            GC_SET_REFCOUNT(&le, 1);
             zend_hash_str_update_mem(&EG(persistent_list),
                                      hash_key, hash_key_len, &le, sizeof(le));
             // There is no need to free the return value of the above function
