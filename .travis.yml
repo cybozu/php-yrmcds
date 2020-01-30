@@ -8,10 +8,13 @@ php:
   - 7.1
   - 7.2
   - 7.3
+  - 7.4
   - nightly
 env:
-  - YRMCDS_VERSION=v1.1.6
+  - YRMCDS_VERSION=v1.1.9
   - YRMCDS_VERSION=master
+allow_failures:
+  - php: nightly
 before_install:
   - sudo apt-get -qq update
   - git clone -b ${YRMCDS_VERSION} https://github.com/cybozu/yrmcds
