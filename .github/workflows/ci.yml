@@ -1,0 +1,45 @@
+name: Run binary tests
+on: push
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: [ '5.5', '5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', 'nightly' ]
+        yrmcds: [ 'v1.1.9', 'master' ]
+        include:
+          - php: nightly
+            allow_failures: "true"
+    name: Run binary tests on PHP ${{ matrix.php }} and yrmcds ${{ matrix.yrmcds }}
+    steps:
+      - uses: actions/checkout@master
+      - name: Setup PHP Action
+        uses: shivammathur/setup-php@2.15.0
+        with:
+          php-version: ${{ matrix.php }}
+      - name: Install yrmcds
+        run: |
+          set -eux
+          sudo apt-get -qq update
+          git clone -b ${{ matrix.yrmcds }} https://github.com/cybozu/yrmcds
+          cd yrmcds
+          make
+          sudo ./yrmcdsd &
+          cd ..
+      - name: Install php-yrmcds
+        run: |
+          set -eux
+          phpize
+          ./configure
+          make
+      - name: Run binary tests of php-yrmcds
+        run: |
+          YRMCDS_SERVER=localhost \
+          REPORT_EXIT_STATUS=1 NO_INTERACTION=1 \
+          TEST_PHP_EXECUTABLE=$(which php) php -n \
+          -d open_basedir= -d output_buffering=0 -d memory_limit=-1 \
+          run-tests.php -n \
+          -d extension_dir=modules -d extension=yrmcds.so --show-diff \
+          tests
+        continue-on-error: ${{ matrix.allow_failures == 'true' }}
