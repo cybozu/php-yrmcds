@@ -378,20 +378,39 @@ YRMCDS_METHOD(Client, recv) {
     CHECK_YRMCDS( yrmcds_recv(&obj->conn->res, &r) );
 
     object_init_ex(return_value, ce_yrmcds_response);
-#define UPDATE_PROP_LONG(name, value) \
+#if PHP_MAJOR_VERSION >= 8
+#  define UPDATE_PROP_LONG(name, value) \
+    zend_update_property_long(ce_yrmcds_response, Z_OBJ_P(return_value), ZEND_STRL(name), (long)value)
+#else
+#  define UPDATE_PROP_LONG(name, value) \
     zend_update_property_long(ce_yrmcds_response, return_value, ZEND_STRL(name), (long)value)
+#endif
     UPDATE_PROP_LONG("serial", r.serial);
     UPDATE_PROP_LONG("length", r.length);
     UPDATE_PROP_LONG("status", r.status);
     UPDATE_PROP_LONG("command", r.command);
     UPDATE_PROP_LONG("cas_unique", r.cas_unique);
     UPDATE_PROP_LONG("flags", r.flags);
-    if( r.key_len > 0 )
+    if( r.key_len > 0 ) {
+#if PHP_MAJOR_VERSION >= 8
+        zend_update_property_stringl(ce_yrmcds_response, Z_OBJ_P(return_value),
+                                     ZEND_STRL("key"), r.key, r.key_len);
+#else
         zend_update_property_stringl(ce_yrmcds_response, return_value,
                                      ZEND_STRL("key"), r.key, r.key_len);
-    if( r.data_len > 0 )
+#endif
+
+    }
+
+    if( r.data_len > 0 ) {
+#if PHP_MAJOR_VERSION >= 8
+        zend_update_property_stringl(ce_yrmcds_response, Z_OBJ_P(return_value),
+                                     ZEND_STRL("data"), r.data, r.data_len);
+#else
         zend_update_property_stringl(ce_yrmcds_response, return_value,
                                      ZEND_STRL("data"), r.data, r.data_len);
+#endif
+    }
     UPDATE_PROP_LONG("value", r.value);
 #undef UPDATE_PROP_LONG
 }
