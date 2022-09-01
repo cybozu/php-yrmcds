@@ -15,14 +15,14 @@ extra_sources="libyrmcds/close.c libyrmcds/connect.c libyrmcds/recv.c \
                libyrmcds/lz4/lib/lz4.c"
 
 if test "$PHP_YRMCDS" != "no"; then
+PHP_YRMCDS_CFLAGS="-D_GNU_SOURCE -DLIBYRMCDS_USE_LZ4 -I@ext_srcdir@/libyrmcds/lz4/lib"
     PHP_SUBST(YRMCDS_SHARED_LIBADD)
     if test "$PHP_MAJOR_VERSION" -lt 7; then
         PHP_NEW_EXTENSION(yrmcds, yrmcds_php5.c $extra_sources, $ext_shared,,
-                          "-D_GNU_SOURCE -DLIBYRMCDS_USE_LZ4")
+                          $PHP_YRMCDS_CFLAGS)
     else
         PHP_NEW_EXTENSION(yrmcds, yrmcds.c $extra_sources, $ext_shared,,
-                          "-D_GNU_SOURCE -DLIBYRMCDS_USE_LZ4")
+                          $PHP_YRMCDS_CFLAGS)
     fi
     PHP_ADD_INCLUDE([$ext_srcdir/libyrmcds])
-    PHP_ADD_INCLUDE([$ext_srcdir/libyrmcds/lz4/lib])
 fi
