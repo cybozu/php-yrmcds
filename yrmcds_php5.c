@@ -28,7 +28,7 @@ ZEND_DECLARE_MODULE_GLOBALS(yrmcds)
         if( __e != 0 ) {                                                \
             if( __e == YRMCDS_SYSTEM_ERROR ) {                          \
                 zend_throw_exception_ex(ce_yrmcds_error, __e TSRMLS_CC, \
-                                        (char*)sys_errlist[errno]);     \
+                                        strerror(errno));     \
             } else {                                                    \
                 zend_throw_exception_ex(ce_yrmcds_error, __e TSRMLS_CC, \
                                         (char*)yrmcds_strerror(__e));   \
@@ -42,7 +42,7 @@ ZEND_DECLARE_MODULE_GLOBALS(yrmcds)
         if( __e != 0 ) {                                                \
             if( __e == YRMCDS_SYSTEM_ERROR ) {                          \
                 zend_throw_exception_ex(ce_yrmcds_error, __e TSRMLS_CC, \
-                                        (char*)sys_errlist[errno]);     \
+                                        strerror(errno));     \
             } else {                                                    \
                 zend_throw_exception_ex(ce_yrmcds_error, __e TSRMLS_CC, \
                                         (char*)yrmcds_strerror(__e));   \
@@ -55,7 +55,7 @@ ZEND_DECLARE_MODULE_GLOBALS(yrmcds)
         char __buf[256];                                                \
         if( __e == YRMCDS_SYSTEM_ERROR ) {                              \
             snprintf(__buf, sizeof(__buf), "yrmcds: %s",                \
-                     sys_errlist[errno]);                               \
+                     strerror(errno));                               \
         } else {                                                        \
             snprintf(__buf, sizeof(__buf), "yrmcds: %s",                \
                      yrmcds_strerror(__e));                             \
