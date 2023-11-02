@@ -34,8 +34,8 @@ server-side locking is also available.
 Requirements
 ------------
 
-* PHP 5.4+ or PHP7.
-* Linux or MacOS X.
+* PHP 5.4+ or PHP 7 or PHP 8.
+* Linux or macOS.
 
 Install
 -------
