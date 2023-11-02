@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/cybozu/php-yrmcds.svg?branch=master)](https://travis-ci.org/cybozu/php-yrmcds)
+![Build Status](https://github.com/cybozu/php-yrmcds/actions/workflows/ci.yml/badge.svg?branch=master)
 
 memcached / yrmcds extension for PHP
 ====================================
@@ -34,8 +34,8 @@ server-side locking is also available.
 Requirements
 ------------
 
-* PHP 5.4+ or PHP7.
-* Linux or MacOS X.
+* PHP 5.4+ or PHP 7 or PHP 8.
+* Linux or macOS.
 
 Install
 -------
