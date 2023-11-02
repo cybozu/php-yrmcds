@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/cybozu/php-yrmcds.svg?branch=master)](https://travis-ci.org/cybozu/php-yrmcds)
+[![Build Status](https://github.com/cybozu/php-yrmcds/actions/workflows/ci.yml/badge.svg?branch=master)
 
 memcached / yrmcds extension for PHP
 ====================================
