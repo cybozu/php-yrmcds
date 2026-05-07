@@ -10,9 +10,7 @@
 #include "php_yrmcds.h"
 #include "zend_exceptions.h"
 
-#ifdef HAVE_SPL
 #include "ext/spl/spl_exceptions.h"
-#endif
 
 #include <alloca.h>
 #include <errno.h>
@@ -51,9 +49,15 @@ ZEND_DECLARE_MODULE_GLOBALS(yrmcds)
         php_log_err(__buf);                                             \
     } while( 0 )
 
+#if PHP_VERSION_ID >= 80000
+#define DEF_YRMCDS_CONST(name, value)                    \
+    REGISTER_NS_LONG_CONSTANT("yrmcds", name, (value),   \
+                              CONST_PERSISTENT)
+#else
 #define DEF_YRMCDS_CONST(name, value)                    \
     REGISTER_NS_LONG_CONSTANT("yrmcds", name, (value),   \
                               CONST_CS|CONST_PERSISTENT)
+#endif
 #define YRMCDS_METHOD(cn, mn)                   \
     static PHP_METHOD(cn, mn)
 #define AI(cn, mn) php_yrmcds_##cn##mn##_arg
@@ -238,7 +242,7 @@ use_existing_persistent_connection(const char* hash_key, int hash_key_len,
         return UEPC_NOT_FOUND;
 
     php_yrmcds_t* c = le->ptr;
-    if( (zend_bool)YRMCDS_G(detect_stale_connection) ) {
+    if( (bool)YRMCDS_G(detect_stale_connection) ) {
         *err = check_persistent_connection(c, status);
         if( *err != YRMCDS_OK || *status != YRMCDS_STATUS_OK ) {
             size_t refcount = c->reference_count;
@@ -264,7 +268,7 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, __construct) {
     char* node;
     size_t node_len;
-    long port = 11211;
+    zend_long port = 11211;
     char* persist_id = NULL;
     size_t persist_id_len = 0;
     char* prefix = NULL;
@@ -352,7 +356,7 @@ ZEND_BEGIN_ARG_INFO_EX(AI(Client, setTimeout), 0, ZEND_RETURN_VALUE, 1)
 ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, setTimeout) {
-    long timeout;
+    zend_long timeout;
 
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "l", &timeout) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -436,7 +440,7 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, get) {
     char* key;
     size_t key_len;
-    zend_bool quiet = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -463,7 +467,7 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, getk) {
     char* key;
     size_t key_len;
-    zend_bool quiet = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -491,8 +495,8 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, getTouch) {
     char* key;
     size_t key_len;
-    long expire;
-    zend_bool quiet = 0;
+    zend_long expire;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!l|b",
                               &key, &key_len, &expire, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -521,8 +525,8 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, getkTouch) {
     char* key;
     size_t key_len;
-    long expire;
-    zend_bool quiet = 0;
+    zend_long expire;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!l|b",
                               &key, &key_len, &expire, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -550,7 +554,7 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, lockGet) {
     char* key;
     size_t key_len;
-    zend_bool quiet = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -578,7 +582,7 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, lockGetk) {
     char* key;
     size_t key_len;
-    zend_bool quiet = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -607,8 +611,8 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, touch) {
     char* key;
     size_t key_len;
-    long expire;
-    zend_bool quiet = 0;
+    zend_long expire;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!l|b",
                               &key, &key_len, &expire, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -642,10 +646,10 @@ YRMCDS_METHOD(Client, set) {
     size_t key_len;
     char* data;
     size_t data_len;
-    long flags = 0;
-    long expire = 0;
-    long cas = 0;
-    zend_bool quiet = 0;
+    zend_long flags = 0;
+    zend_long expire = 0;
+    zend_long cas = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!s!|lllb",
                               &key, &key_len, &data, &data_len,
                               &flags, &expire, &cas, &quiet) == FAILURE ) {
@@ -685,10 +689,10 @@ YRMCDS_METHOD(Client, replace) {
     size_t key_len;
     char* data;
     size_t data_len;
-    long flags = 0;
-    long expire = 0;
-    long cas = 0;
-    zend_bool quiet = 0;
+    zend_long flags = 0;
+    zend_long expire = 0;
+    zend_long cas = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!s!|lllb",
                               &key, &key_len, &data, &data_len,
                               &flags, &expire, &cas, &quiet) == FAILURE ) {
@@ -728,10 +732,10 @@ YRMCDS_METHOD(Client, add) {
     size_t key_len;
     char* data;
     size_t data_len;
-    long flags = 0;
-    long expire = 0;
-    long cas = 0;
-    zend_bool quiet = 0;
+    zend_long flags = 0;
+    zend_long expire = 0;
+    zend_long cas = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!s!|lllb",
                               &key, &key_len, &data, &data_len,
                               &flags, &expire, &cas, &quiet) == FAILURE ) {
@@ -770,9 +774,9 @@ YRMCDS_METHOD(Client, replaceUnlock) {
     size_t key_len;
     char* data;
     size_t data_len;
-    long flags = 0;
-    long expire = 0;
-    zend_bool quiet = 0;
+    zend_long flags = 0;
+    zend_long expire = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!s!|llb",
                               &key, &key_len, &data, &data_len,
                               &flags, &expire, &quiet) == FAILURE ) {
@@ -807,8 +811,8 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, incr) {
     char* key;
     size_t key_len;
-    long value;
-    zend_bool quiet = 0;
+    zend_long value;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!l|b",
                               &key, &key_len, &value, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -841,8 +845,8 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, decr) {
     char* key;
     size_t key_len;
-    long value;
-    zend_bool quiet = 0;
+    zend_long value;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!l|b",
                               &key, &key_len, &value, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -877,10 +881,10 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, incr2) {
     char* key;
     size_t key_len;
-    long value;
-    long initial;
-    long expire = 0;
-    zend_bool quiet = 0;
+    zend_long value;
+    zend_long initial;
+    zend_long expire = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!ll|lb",
                               &key, &key_len, &value, &initial,
                               &expire, &quiet) == FAILURE ) {
@@ -920,10 +924,10 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, decr2) {
     char* key;
     size_t key_len;
-    long value;
-    long initial;
-    long expire = 0;
-    zend_bool quiet = 0;
+    zend_long value;
+    zend_long initial;
+    zend_long expire = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!ll|lb",
                               &key, &key_len, &value, &initial,
                               &expire, &quiet) == FAILURE ) {
@@ -963,7 +967,7 @@ YRMCDS_METHOD(Client, append) {
     size_t key_len;
     char* data;
     size_t data_len;
-    zend_bool quiet = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!s!|b",
                               &key, &key_len, &data, &data_len,
                               &quiet) == FAILURE ) {
@@ -999,7 +1003,7 @@ YRMCDS_METHOD(Client, prepend) {
     size_t key_len;
     char* data;
     size_t data_len;
-    zend_bool quiet = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!s!|b",
                               &key, &key_len, &data, &data_len,
                               &quiet) == FAILURE ) {
@@ -1032,7 +1036,7 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, delete) {
     char* key;
     size_t key_len;
-    zend_bool quiet = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -1059,7 +1063,7 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, lock) {
     char* key;
     size_t key_len;
-    zend_bool quiet = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -1086,7 +1090,7 @@ ZEND_END_ARG_INFO()
 YRMCDS_METHOD(Client, unlock) {
     char* key;
     size_t key_len;
-    zend_bool quiet = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "s!|b",
                               &key, &key_len, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -1110,7 +1114,7 @@ ZEND_BEGIN_ARG_INFO_EX(AI(Client, unlockAll), 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, unlockAll) {
-    zend_bool quiet = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "|b", &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
@@ -1130,8 +1134,8 @@ ZEND_BEGIN_ARG_INFO_EX(AI(Client, flush), 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, flush) {
-    long delay = 0;
-    zend_bool quiet = 0;
+    zend_long delay = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "|lb",
                               &delay, &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
@@ -1236,7 +1240,7 @@ ZEND_BEGIN_ARG_INFO_EX(AI(Client, quit), 0, ZEND_RETURN_VALUE, 0)
 ZEND_END_ARG_INFO()
 
 YRMCDS_METHOD(Client, quit) {
-    zend_bool quiet = 0;
+    bool quiet = 0;
     if( zend_parse_parameters(ZEND_NUM_ARGS(), "|b", &quiet) == FAILURE ) {
         php_error(E_ERROR, "Invalid argument");
         RETURN_FALSE;
@@ -1250,7 +1254,11 @@ YRMCDS_METHOD(Client, quit) {
 }
 
 static const zend_function_entry php_yrmcds_client_functions[] = {
+#if PHP_VERSION_ID >= 80000
+    YRMCDS_ME(Client, __construct, ZEND_ACC_PUBLIC)
+#else
     YRMCDS_ME(Client, __construct, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
+#endif
     YRMCDS_ME(Client, setTimeout, ZEND_ACC_PUBLIC)
     YRMCDS_ME(Client, recv, ZEND_ACC_PUBLIC)
     YRMCDS_ME(Client, noop, ZEND_ACC_PUBLIC)
@@ -1326,13 +1334,8 @@ static PHP_MINIT_FUNCTION(yrmcds)
     oh_yrmcds_client.clone_obj = NULL;
 
     INIT_NS_CLASS_ENTRY(ce, "yrmcds", "Error", NULL);
-#ifdef HAVE_SPL
     ce_yrmcds_error = zend_register_internal_class_ex(
         &ce, spl_ce_RuntimeException);
-#else
-    ce_yrmcds_error = zend_register_internal_class_ex(
-        &ce, zend_exception_get_default());
-#endif
 
     INIT_NS_CLASS_ENTRY(ce, "yrmcds", "Response", NULL);
     ce_yrmcds_response = zend_register_internal_class(&ce);

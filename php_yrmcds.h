@@ -26,9 +26,9 @@ extern zend_module_entry yrmcds_module_entry;
 #define PHP_YRMCDS_HASH_KEY "yrmcds:%s"
 
 ZEND_BEGIN_MODULE_GLOBALS(yrmcds)
-    long compression_threshold;
-    long default_timeout;
-    zend_bool detect_stale_connection;
+    zend_long compression_threshold;
+    zend_long default_timeout;
+    bool detect_stale_connection;
 ZEND_END_MODULE_GLOBALS(yrmcds)
 
 #ifdef ZTS
