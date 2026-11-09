@@ -10,10 +10,6 @@
 #include "php_yrmcds.h"
 #include "zend_exceptions.h"
 
-#ifdef HAVE_SPL
-#include "ext/spl/spl_exceptions.h"
-#endif
-
 #include <alloca.h>
 #include <errno.h>
 #include <string.h>
@@ -1326,13 +1322,8 @@ static PHP_MINIT_FUNCTION(yrmcds)
     oh_yrmcds_client.clone_obj = NULL;
 
     INIT_NS_CLASS_ENTRY(ce, "yrmcds", "Error", NULL);
-#ifdef HAVE_SPL
     ce_yrmcds_error = zend_register_internal_class_ex(
-        &ce, spl_ce_RuntimeException);
-#else
-    ce_yrmcds_error = zend_register_internal_class_ex(
-        &ce, zend_exception_get_default());
-#endif
+        &ce, zend_ce_exception);
 
     INIT_NS_CLASS_ENTRY(ce, "yrmcds", "Response", NULL);
     ce_yrmcds_response = zend_register_internal_class(&ce);
