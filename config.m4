@@ -25,4 +25,5 @@ PHP_YRMCDS_CFLAGS="-D_GNU_SOURCE -DLIBYRMCDS_USE_LZ4 -I@ext_srcdir@/libyrmcds/lz
                           $PHP_YRMCDS_CFLAGS)
     fi
     PHP_ADD_INCLUDE([$ext_srcdir/libyrmcds])
+    PHP_ADD_EXTENSION_DEP(yrmcds, spl)
 fi
